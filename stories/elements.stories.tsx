@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React, { useMemo, useState } from 'react';
 import { Badge, Button, Logger, NotificationViewport, Table, type LoggerEntry, type NotificationItem, type TableColumn } from '../src/index';
 import { CaseGrid, Section, StoryShell, formatDateTime, formatMoney, signedTone, type StoryCase } from './story-helpers';
+import { useStoryArgsUpdater } from './story-args';
+import { docsSource, loggerSource, notificationSource, tableSource } from './story-source';
 
 const meta: Meta = {
   title: 'React UI/Elements',
@@ -12,7 +14,7 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj;
+const accentOptions = ['default', 'teal', 'warning', 'danger', 'neutral', 'tailadmin', 'light-blue', 'light-success', 'light-warning', 'light-danger', 'light-neutral'];
 
 interface ElementRow {
   id: string;
@@ -427,13 +429,332 @@ const notificationCases: StoryCase[] = [
   },
 ];
 
-export const TableElement: Story = {
-  render: function TableElementStory() {
+interface TableElementArgs {
+  tableId: string;
+  scopeId: string;
+  persistence: boolean;
+  controlledState: boolean;
+  defaultVisibleColumns: string;
+  columnOrder: string;
+  sortColumn: string;
+  sortDirection: 'none' | 'asc' | 'desc';
+  statusFilter: string;
+  searchable: boolean;
+  globalSearch: string;
+  searchPlaceholder: string;
+  customGlobalSearch: boolean;
+  customSortRows: boolean;
+  hideColumnControls: boolean;
+  allowColumnResize: boolean;
+  allowColumnReorder: boolean;
+  loading: boolean;
+  loadingContent: string;
+  selectable: boolean;
+  controlledSelection: boolean;
+  selectionMode: 'single' | 'multi';
+  selectedKeys: string;
+  selectAllScope: 'all' | 'filtered';
+  onStateChange: boolean;
+  onSelectionChange: boolean;
+  onExpandedChange: boolean;
+  onRowExpand: boolean;
+  disableBlockedRows: boolean;
+  expanded: boolean;
+  expandedRowIds: string;
+  showExpandedContent: boolean;
+  toolbarContent: boolean;
+  renderToolbar: boolean;
+  headerFilters: boolean;
+  renderHeaderFilters: boolean;
+  renderSelectionActions: boolean;
+  virtualizationEnabled: boolean;
+  virtualizationRowHeight: number;
+  virtualizationOverscan: number;
+  virtualizationMaxHeight: number;
+  emptyMessage: string;
+  accentKey: string;
+  customStyle: boolean;
+  className: string;
+  containerClassName: string;
+  tableClassName: string;
+  rowClassName: string;
+  detailRowClassName: string;
+  rootClassName: string;
+  toolbarClassName: string;
+  headerFiltersClassName: string;
+  menuClassName: string;
+  classNamesContainerClassName: string;
+  classNamesTableClassName: string;
+  classNamesRowClassName: string;
+  classNamesDetailRowClassName: string;
+  headerRowClassName: string;
+  cellClassName: string;
+}
+
+export const TableElement: StoryObj<TableElementArgs> = {
+  args: {
+    tableId: 'elements-controlled-table',
+    scopeId: '',
+    persistence: false,
+    controlledState: false,
+    defaultVisibleColumns: 'name,owner,status,score,active',
+    columnOrder: 'name,owner,status,score,active,updatedAt,note',
+    sortColumn: 'none',
+    sortDirection: 'none',
+    statusFilter: '',
+    searchable: true,
+    globalSearch: '',
+    searchPlaceholder: 'Search records',
+    customGlobalSearch: false,
+    customSortRows: false,
+    hideColumnControls: false,
+    allowColumnResize: true,
+    allowColumnReorder: true,
+    loading: false,
+    loadingContent: 'Loading records...',
+    selectable: true,
+    controlledSelection: false,
+    selectionMode: 'multi',
+    selectedKeys: 'row-2',
+    selectAllScope: 'filtered',
+    onStateChange: true,
+    onSelectionChange: true,
+    onExpandedChange: true,
+    onRowExpand: true,
+    disableBlockedRows: false,
+    expanded: true,
+    expandedRowIds: 'row-1',
+    showExpandedContent: true,
+    toolbarContent: false,
+    renderToolbar: false,
+    headerFilters: false,
+    renderHeaderFilters: false,
+    renderSelectionActions: true,
+    virtualizationEnabled: false,
+    virtualizationRowHeight: 56,
+    virtualizationOverscan: 4,
+    virtualizationMaxHeight: 420,
+    emptyMessage: 'No rows found.',
+    accentKey: 'default',
+    customStyle: false,
+    className: '',
+    containerClassName: '',
+    tableClassName: '',
+    rowClassName: '',
+    detailRowClassName: '',
+    rootClassName: '',
+    toolbarClassName: '',
+    headerFiltersClassName: '',
+    menuClassName: '',
+    classNamesContainerClassName: '',
+    classNamesTableClassName: '',
+    classNamesRowClassName: '',
+    classNamesDetailRowClassName: '',
+    headerRowClassName: '',
+    cellClassName: '',
+  },
+  argTypes: {
+    tableId: { control: 'text', table: { category: 'Table identity' } },
+    scopeId: { control: 'text', table: { category: 'Table identity' } },
+    persistence: { control: 'boolean', table: { category: 'Table state' } },
+    controlledState: { name: 'state/onStateChange', control: 'boolean', table: { category: 'Table state' } },
+    defaultVisibleColumns: { name: 'defaultState.visibleColumnIds', control: 'text', table: { category: 'Table state' } },
+    columnOrder: { name: 'state.columnOrder', control: 'text', table: { category: 'Table state' } },
+    sortColumn: {
+      name: 'state.sort.columnId',
+      control: 'select',
+      options: ['none', 'name', 'owner', 'status', 'score', 'active', 'updatedAt'],
+      table: { category: 'Table state' },
+    },
+    sortDirection: { name: 'state.sort.direction', control: 'select', options: ['none', 'asc', 'desc'], table: { category: 'Table state' } },
+    statusFilter: { name: 'state.filters.status', control: 'select', options: ['', 'Ready', 'Blocked', 'Review'], table: { category: 'Table state' } },
+    searchable: { control: 'boolean', table: { category: 'Table' } },
+    globalSearch: { name: 'state.globalSearch', control: 'text', table: { category: 'Table state' } },
+    searchPlaceholder: { control: 'text', table: { category: 'Table' } },
+    customGlobalSearch: { name: 'globalSearchFn', control: 'boolean', table: { category: 'Table callbacks' } },
+    customSortRows: { name: 'sortRows', control: 'boolean', table: { category: 'Table callbacks' } },
+    hideColumnControls: { control: 'boolean', table: { category: 'Table' } },
+    allowColumnResize: { control: 'boolean', table: { category: 'Table columns' } },
+    allowColumnReorder: { control: 'boolean', table: { category: 'Table columns' } },
+    loading: { control: 'boolean', table: { category: 'Table' } },
+    loadingContent: { control: 'text', table: { category: 'Table slots' } },
+    selectable: { name: 'selection', control: 'boolean', table: { category: 'Table' } },
+    controlledSelection: { name: 'selection.selectedKeys', control: 'boolean', table: { category: 'Table selection' } },
+    selectionMode: { name: 'selection.mode', control: 'select', options: ['single', 'multi'], table: { category: 'Table selection' } },
+    selectedKeys: { name: 'selection.defaultSelectedKeys', control: 'text', table: { category: 'Table selection' } },
+    selectAllScope: { name: 'selection.selectAllScope', control: 'select', options: ['all', 'filtered'], table: { category: 'Table selection' } },
+    onStateChange: { control: 'boolean', table: { category: 'Table callbacks' } },
+    onSelectionChange: { name: 'selection.onChange', control: 'boolean', table: { category: 'Table callbacks' } },
+    onExpandedChange: { control: 'boolean', table: { category: 'Table callbacks' } },
+    onRowExpand: { control: 'boolean', table: { category: 'Table callbacks' } },
+    disableBlockedRows: { name: 'selection.isRowDisabled', control: 'boolean', table: { category: 'Table selection' } },
+    expanded: { name: 'defaultExpandedRowIds', control: 'boolean', table: { category: 'Table' } },
+    expandedRowIds: { control: 'text', table: { category: 'Table expansion' } },
+    showExpandedContent: { name: 'renderExpandedContent', control: 'boolean', table: { category: 'Table expansion' } },
+    toolbarContent: { control: 'boolean', table: { category: 'Table slots' } },
+    renderToolbar: { control: 'boolean', table: { category: 'Table slots' } },
+    headerFilters: { control: 'boolean', table: { category: 'Table filters' } },
+    renderHeaderFilters: { control: 'boolean', table: { category: 'Table filters' } },
+    renderSelectionActions: { control: 'boolean', table: { category: 'Table selection' } },
+    virtualizationEnabled: { name: 'virtualization.enabled', control: 'boolean', table: { category: 'Table virtualization' } },
+    virtualizationRowHeight: { name: 'virtualization.rowHeight', control: 'number', table: { category: 'Table virtualization' } },
+    virtualizationOverscan: { name: 'virtualization.overscan', control: 'number', table: { category: 'Table virtualization' } },
+    virtualizationMaxHeight: { name: 'virtualization.maxHeight', control: 'number', table: { category: 'Table virtualization' } },
+    emptyMessage: { control: 'text', table: { category: 'Table' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'Table' } },
+    customStyle: { name: 'style', control: 'boolean', table: { category: 'Table' } },
+    className: { control: 'text', table: { category: 'Table classes' } },
+    containerClassName: { control: 'text', table: { category: 'Table classes' } },
+    tableClassName: { control: 'text', table: { category: 'Table classes' } },
+    rowClassName: { control: 'text', table: { category: 'Table classes' } },
+    detailRowClassName: { control: 'text', table: { category: 'Table classes' } },
+    rootClassName: { name: 'classNames.root', control: 'text', table: { category: 'Table classNames' } },
+    toolbarClassName: { name: 'classNames.toolbar', control: 'text', table: { category: 'Table classNames' } },
+    headerFiltersClassName: { name: 'classNames.headerFilters', control: 'text', table: { category: 'Table classNames' } },
+    menuClassName: { name: 'classNames.menu', control: 'text', table: { category: 'Table classNames' } },
+    classNamesContainerClassName: { name: 'classNames.container', control: 'text', table: { category: 'Table classNames' } },
+    classNamesTableClassName: { name: 'classNames.table', control: 'text', table: { category: 'Table classNames' } },
+    classNamesRowClassName: { name: 'classNames.row', control: 'text', table: { category: 'Table classNames' } },
+    classNamesDetailRowClassName: { name: 'classNames.detailRow', control: 'text', table: { category: 'Table classNames' } },
+    headerRowClassName: { name: 'classNames.headerRow', control: 'text', table: { category: 'Table classNames' } },
+    cellClassName: { name: 'classNames.cell', control: 'text', table: { category: 'Table classNames' } },
+  },
+  parameters: docsSource(tableSource, 'Exact Table usage code with search, selection, expansion, and action slots.'),
+  render: function TableElementStory(args) {
+    const updateArgs = useStoryArgsUpdater<TableElementArgs>();
+    const selectedKeys = args.selectedKeys
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const expandedIds = args.expandedRowIds
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const defaultVisibleColumnIds = args.defaultVisibleColumns
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const columnOrder = args.columnOrder
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const controlledState = {
+      globalSearch: args.globalSearch,
+      ...(columnOrder.length ? { columnOrder } : {}),
+      ...(args.sortColumn !== 'none' && args.sortDirection !== 'none' ? { sort: { columnId: args.sortColumn, direction: args.sortDirection } as const } : {}),
+      ...(args.statusFilter ? { filters: { status: { values: [args.statusFilter] } } } : {}),
+    };
+
     return (
       <StoryShell
         title="Table element"
         description="Table prop usage independent of any product domain. Bot-specific table shapes are mirrored in the dedicated table parity story."
       >
+        <Section title="Controlled Table example" description="These controls map to Table props.">
+          <Table
+            rows={rows}
+            columns={tableColumns}
+            rowKey={(row) => row.id}
+            tableId={args.tableId}
+            scopeId={args.scopeId || undefined}
+            persistence={args.persistence ? { namespace: 'storybook:table' } : false}
+            state={args.controlledState ? controlledState : undefined}
+            defaultState={
+              !args.controlledState && (defaultVisibleColumnIds.length || columnOrder.length)
+                ? { visibleColumnIds: defaultVisibleColumnIds, columnOrder, globalSearch: args.globalSearch }
+                : undefined
+            }
+            onStateChange={
+              args.onStateChange
+                ? (state) =>
+                    updateArgs({
+                      globalSearch: state.globalSearch,
+                      defaultVisibleColumns: state.visibleColumnIds.join(','),
+                      columnOrder: state.columnOrder.join(','),
+                      sortColumn: state.sort?.columnId ?? 'none',
+                      sortDirection: state.sort?.direction ?? 'none',
+                    })
+                : undefined
+            }
+            searchable={args.searchable}
+            searchPlaceholder={args.searchPlaceholder}
+            globalSearchFn={args.customGlobalSearch ? (row, query) => `${row.name} ${row.owner}`.toLowerCase().includes(query.toLowerCase()) : undefined}
+            sortRows={args.customSortRows ? (nextRows) => [...nextRows].sort((left, right) => right.score - left.score) : undefined}
+            hideColumnControls={args.hideColumnControls}
+            allowColumnResize={args.allowColumnResize}
+            allowColumnReorder={args.allowColumnReorder}
+            loading={args.loading}
+            loadingContent={args.loadingContent}
+            emptyMessage={args.emptyMessage}
+            toolbarContent={args.toolbarContent ? <Badge tone="neutral">Toolbar slot</Badge> : undefined}
+            renderToolbar={args.renderToolbar ? ({ visibleRows }) => <Badge>{visibleRows.length} visible</Badge> : undefined}
+            headerFilters={args.headerFilters ? <Button size="sm">Header filters slot</Button> : undefined}
+            renderHeaderFilters={
+              args.renderHeaderFilters
+                ? ({ setFilter, reset }) => (
+                    <>
+                      <Button size="sm" onClick={() => setFilter('status', { values: ['Ready'] })}>
+                        Ready
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={reset}>
+                        Reset
+                      </Button>
+                    </>
+                  )
+                : undefined
+            }
+            selection={
+              args.selectable
+                ? {
+                    mode: args.selectionMode,
+                    selectedKeys: args.controlledSelection ? selectedKeys : undefined,
+                    defaultSelectedKeys: selectedKeys,
+                    onChange: args.onSelectionChange ? (nextKeys) => updateArgs({ selectedKeys: nextKeys.join(',') }) : undefined,
+                    selectAllScope: args.selectAllScope,
+                    isRowDisabled: args.disableBlockedRows ? (row) => row.status === 'Blocked' : undefined,
+                  }
+                : undefined
+            }
+            renderSelectionActions={
+              args.renderSelectionActions
+                ? ({ selectedRows, clearSelection }) => (
+                    <Button size="sm" variant="secondary" onClick={clearSelection}>
+                      Clear {selectedRows.length}
+                    </Button>
+                  )
+                : undefined
+            }
+            virtualization={
+              args.virtualizationEnabled
+                ? { enabled: true, rowHeight: args.virtualizationRowHeight, overscan: args.virtualizationOverscan, maxHeight: args.virtualizationMaxHeight }
+                : undefined
+            }
+            defaultExpandedRowIds={args.expanded ? expandedIds : []}
+            expandedRowIds={args.expanded ? expandedIds : undefined}
+            onExpandedChange={args.onExpandedChange ? (rowIds) => updateArgs({ expandedRowIds: rowIds.join(',') }) : undefined}
+            onRowExpand={args.onRowExpand ? (_row, expanded) => updateArgs({ expanded }) : undefined}
+            renderExpandedContent={args.showExpandedContent ? (row) => <div className="text-sm text-[var(--rui-text-secondary)]">{row.note}</div> : undefined}
+            rowClassName={args.rowClassName || undefined}
+            detailRowClassName={args.detailRowClassName || undefined}
+            containerClassName={args.containerClassName || undefined}
+            tableClassName={args.tableClassName || undefined}
+            accentKey={args.accentKey}
+            style={args.customStyle ? ({ '--rui-radius-panel': '16px' } as React.CSSProperties) : undefined}
+            className={args.className || undefined}
+            classNames={{
+              root: args.rootClassName || undefined,
+              toolbar: args.toolbarClassName || undefined,
+              headerFilters: args.headerFiltersClassName || undefined,
+              menu: args.menuClassName || undefined,
+              container: args.classNamesContainerClassName || undefined,
+              table: args.classNamesTableClassName || undefined,
+              row: args.classNamesRowClassName || undefined,
+              detailRow: args.classNamesDetailRowClassName || undefined,
+              headerRow: args.headerRowClassName || undefined,
+              cell: args.cellClassName || undefined,
+            }}
+          />
+        </Section>
         <Section
           title="Table prop cases"
           description="Search, filters, column controls, selection, expansion, nested content, loading, empty states, custom sort, and toolbar slots."
@@ -445,10 +766,195 @@ export const TableElement: Story = {
   },
 };
 
-export const LoggerElement: Story = {
-  render: function LoggerElementStory() {
+interface LoggerElementArgs {
+  title: string;
+  description: string;
+  subtitle: string;
+  action: boolean;
+  onClear: boolean;
+  useLogsAlias: boolean;
+  level: string;
+  category: string;
+  defaultLevel: string;
+  defaultCategory: string;
+  defaultSearch: string;
+  showHeader: boolean;
+  showToolbar: boolean;
+  showLevelFilter: boolean;
+  showCategoryFilter: boolean;
+  searchPlaceholder: string;
+  search: string;
+  autoScroll: boolean;
+  autoScrollDefault: boolean;
+  trailing: boolean;
+  heightClassName: string;
+  emptyContent: string;
+  customTimestamp: boolean;
+  customMetadata: boolean;
+  customPayload: boolean;
+  customSearchText: boolean;
+  onLevelChange: boolean;
+  onCategoryChange: boolean;
+  onSearchChange: boolean;
+  onAutoScrollChange: boolean;
+  onFiltersChange: boolean;
+  accentKey: string;
+  customStyle: boolean;
+  className: string;
+  toolbarClassName: string;
+  viewportClassName: string;
+  entryClassName: string;
+  payloadClassName: string;
+}
+
+export const LoggerElement: StoryObj<LoggerElementArgs> = {
+  args: {
+    title: 'Log stream',
+    description: 'Generic filtered event stream.',
+    subtitle: '',
+    action: false,
+    onClear: false,
+    useLogsAlias: false,
+    level: 'ALL',
+    category: 'ALL',
+    defaultLevel: 'ALL',
+    defaultCategory: 'ALL',
+    defaultSearch: '',
+    showHeader: true,
+    showToolbar: true,
+    showLevelFilter: true,
+    showCategoryFilter: true,
+    searchPlaceholder: 'Search logs',
+    search: '',
+    autoScroll: true,
+    autoScrollDefault: true,
+    trailing: true,
+    heightClassName: 'max-h-[320px]',
+    emptyContent: 'No log lines matched the current filters.',
+    customTimestamp: false,
+    customMetadata: false,
+    customPayload: false,
+    customSearchText: false,
+    onLevelChange: true,
+    onCategoryChange: true,
+    onSearchChange: true,
+    onAutoScrollChange: true,
+    onFiltersChange: false,
+    accentKey: 'default',
+    customStyle: false,
+    className: '',
+    toolbarClassName: '',
+    viewportClassName: '',
+    entryClassName: '',
+    payloadClassName: '',
+  },
+  argTypes: {
+    title: { control: 'text', table: { category: 'Logger header' } },
+    description: { control: 'text', table: { category: 'Logger header' } },
+    subtitle: { control: 'text', table: { category: 'Logger header' } },
+    action: { name: 'action', control: 'boolean', table: { category: 'Logger header' } },
+    onClear: { control: 'boolean', table: { category: 'Logger actions' } },
+    useLogsAlias: { name: 'logs', control: 'boolean', table: { category: 'Logger data' } },
+    level: { control: 'select', options: ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'SUCCESS'], table: { category: 'Logger controlled filters' } },
+    category: { control: 'select', options: ['ALL', 'release', 'quality'], table: { category: 'Logger controlled filters' } },
+    defaultLevel: { control: 'select', options: ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'SUCCESS'], table: { category: 'Logger uncontrolled defaults' } },
+    defaultCategory: { control: 'select', options: ['ALL', 'release', 'quality'], table: { category: 'Logger uncontrolled defaults' } },
+    defaultSearch: { control: 'text', table: { category: 'Logger uncontrolled defaults' } },
+    showHeader: { control: 'boolean', table: { category: 'Logger' } },
+    showToolbar: { control: 'boolean', table: { category: 'Logger' } },
+    showLevelFilter: { control: 'boolean', table: { category: 'Logger' } },
+    showCategoryFilter: { control: 'boolean', table: { category: 'Logger' } },
+    searchPlaceholder: { control: 'text', table: { category: 'Logger' } },
+    search: { control: 'text', table: { category: 'Logger' } },
+    autoScroll: { control: 'boolean', table: { category: 'Logger' } },
+    autoScrollDefault: { control: 'boolean', table: { category: 'Logger uncontrolled defaults' } },
+    trailing: { control: 'boolean', table: { category: 'Logger' } },
+    heightClassName: { control: 'text', table: { category: 'Logger' } },
+    emptyContent: { control: 'text', table: { category: 'Logger slots' } },
+    customTimestamp: { name: 'formatTimestamp', control: 'boolean', table: { category: 'Logger render props' } },
+    customMetadata: { name: 'renderMetadata', control: 'boolean', table: { category: 'Logger render props' } },
+    customPayload: { name: 'renderPayload', control: 'boolean', table: { category: 'Logger render props' } },
+    customSearchText: { name: 'getSearchText', control: 'boolean', table: { category: 'Logger render props' } },
+    onLevelChange: { control: 'boolean', table: { category: 'Logger callbacks' } },
+    onCategoryChange: { control: 'boolean', table: { category: 'Logger callbacks' } },
+    onSearchChange: { control: 'boolean', table: { category: 'Logger callbacks' } },
+    onAutoScrollChange: { control: 'boolean', table: { category: 'Logger callbacks' } },
+    onFiltersChange: { control: 'boolean', table: { category: 'Logger callbacks' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'Logger' } },
+    customStyle: { name: 'style', control: 'boolean', table: { category: 'Logger' } },
+    className: { control: 'text', table: { category: 'Logger classes' } },
+    toolbarClassName: { name: 'classNames.toolbar', control: 'text', table: { category: 'Logger classes' } },
+    viewportClassName: { name: 'classNames.viewport', control: 'text', table: { category: 'Logger classes' } },
+    entryClassName: { name: 'classNames.entry', control: 'text', table: { category: 'Logger classes' } },
+    payloadClassName: { name: 'classNames.payload', control: 'text', table: { category: 'Logger classes' } },
+  },
+  parameters: docsSource(loggerSource, 'Exact Logger usage code with typed entries and toolbar props.'),
+  render: function LoggerElementStory(args) {
+    const updateArgs = useStoryArgsUpdater<LoggerElementArgs>();
+
     return (
       <StoryShell title="Logger element" description="Filterable, expandable, generic log viewer.">
+        <Section title="Controlled Logger example" description="These controls map to Logger props.">
+          <Logger
+            entries={args.useLogsAlias ? undefined : logEntries}
+            logs={args.useLogsAlias ? logEntries : undefined}
+            levels={[
+              { label: 'All levels', value: 'ALL' },
+              { label: 'Info', value: 'INFO' },
+              { label: 'Warn', value: 'WARN' },
+              { label: 'Error', value: 'ERROR' },
+              { label: 'Success', value: 'SUCCESS' },
+            ]}
+            categories={[
+              { label: 'All categories', value: 'ALL' },
+              { label: 'Release', value: 'release' },
+              { label: 'Quality', value: 'quality' },
+            ]}
+            title={args.title}
+            description={args.description || undefined}
+            subtitle={args.subtitle || undefined}
+            action={args.action ? <Badge>Action slot</Badge> : undefined}
+            onClear={args.onClear ? () => undefined : undefined}
+            level={args.level}
+            category={args.category}
+            onLevelChange={args.onLevelChange ? (level) => updateArgs({ level }) : undefined}
+            onCategoryChange={args.onCategoryChange ? (category) => updateArgs({ category }) : undefined}
+            onSearchChange={args.onSearchChange ? (search) => updateArgs({ search }) : undefined}
+            onAutoScrollChange={args.onAutoScrollChange ? (autoScroll) => updateArgs({ autoScroll }) : undefined}
+            onFiltersChange={
+              args.onFiltersChange
+                ? (filters) => updateArgs({ level: filters.level, category: filters.category, search: filters.search, autoScroll: filters.autoScroll })
+                : undefined
+            }
+            defaultLevel={args.defaultLevel}
+            defaultCategory={args.defaultCategory}
+            defaultSearch={args.defaultSearch}
+            showHeader={args.showHeader}
+            showToolbar={args.showToolbar}
+            showLevelFilter={args.showLevelFilter}
+            showCategoryFilter={args.showCategoryFilter}
+            searchPlaceholder={args.searchPlaceholder}
+            search={args.search}
+            autoScroll={args.autoScroll}
+            autoScrollDefault={args.autoScrollDefault}
+            trailing={args.trailing}
+            heightClassName={args.heightClassName}
+            emptyContent={args.emptyContent}
+            formatTimestamp={args.customTimestamp ? (entry) => <span>{formatDateTime(String(entry.createdAt))}</span> : undefined}
+            renderMetadata={args.customMetadata ? (entry) => <Badge tone="neutral">{entry.source}</Badge> : undefined}
+            renderPayload={args.customPayload ? (entry) => <pre>{JSON.stringify(entry.payload ?? {}, null, 2)}</pre> : undefined}
+            getSearchText={args.customSearchText ? (entry) => `${entry.level} ${entry.category} ${entry.message}` : undefined}
+            accentKey={args.accentKey}
+            style={args.customStyle ? ({ '--rui-radius-panel': '16px' } as React.CSSProperties) : undefined}
+            className={args.className || undefined}
+            classNames={{
+              toolbar: args.toolbarClassName || undefined,
+              viewport: args.viewportClassName || undefined,
+              entry: args.entryClassName || undefined,
+              payload: args.payloadClassName || undefined,
+            }}
+          />
+        </Section>
         <Section title="Logger prop cases" description="Default toolbar, controlled filters, compact mode, empty state, timestamp formatting, and clear action.">
           <CaseGrid cases={loggerCases} />
         </Section>
@@ -457,10 +963,79 @@ export const LoggerElement: Story = {
   },
 };
 
-export const NotificationElement: Story = {
-  render: function NotificationElementStory() {
+interface NotificationElementArgs {
+  placement: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+  tone: 'accent' | 'success' | 'warning' | 'danger' | 'neutral' | 'info';
+  title: string;
+  message: string;
+  timeout: number | null;
+  actions: boolean;
+  dismissible: boolean;
+  accentKey: string;
+  className: string;
+  itemClassName: string;
+  titleClassName: string;
+  messageClassName: string;
+  actionsClassName: string;
+}
+
+export const NotificationElement: StoryObj<NotificationElementArgs> = {
+  args: {
+    placement: 'top-right',
+    tone: 'success',
+    title: 'Saved',
+    message: 'The component is controlled by the host.',
+    timeout: null,
+    actions: false,
+    dismissible: true,
+    accentKey: 'default',
+    className: '',
+    itemClassName: '',
+    titleClassName: '',
+    messageClassName: '',
+    actionsClassName: '',
+  },
+  argTypes: {
+    placement: { control: 'select', options: ['top-right', 'top-left', 'bottom-right', 'bottom-left'], table: { category: 'NotificationViewport' } },
+    tone: { control: 'select', options: ['accent', 'success', 'warning', 'danger', 'neutral', 'info'], table: { category: 'NotificationItem' } },
+    title: { control: 'text', table: { category: 'NotificationItem' } },
+    message: { control: 'text', table: { category: 'NotificationItem' } },
+    timeout: { control: 'number', table: { category: 'NotificationItem' } },
+    actions: { name: 'NotificationItem.actions', control: 'boolean', table: { category: 'NotificationItem' } },
+    dismissible: { name: 'onDismiss', control: 'boolean', table: { category: 'NotificationViewport' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'NotificationViewport' } },
+    className: { control: 'text', table: { category: 'NotificationViewport classes' } },
+    itemClassName: { control: 'text', table: { category: 'NotificationViewport classes' } },
+    titleClassName: { control: 'text', table: { category: 'NotificationViewport classes' } },
+    messageClassName: { control: 'text', table: { category: 'NotificationViewport classes' } },
+    actionsClassName: { control: 'text', table: { category: 'NotificationViewport classes' } },
+  },
+  parameters: docsSource(notificationSource, 'Exact NotificationViewport usage code with typed items and dismiss callback.'),
+  render: function NotificationElementStory(args) {
     return (
       <StoryShell title="NotificationViewport element" description="Controlled toast viewport with tones, timeout, actions, placements, and dismiss behavior.">
+        <Section title="Controlled NotificationViewport example" description="These controls map to NotificationViewport and NotificationItem props.">
+          <NotificationViewport
+            placement={args.placement}
+            items={[
+              {
+                id: 'controlled-note',
+                tone: args.tone,
+                title: args.title,
+                message: args.message,
+                timeout: args.timeout,
+                actions: args.actions ? <Button size="sm">Open</Button> : undefined,
+              },
+            ]}
+            onDismiss={args.dismissible ? () => undefined : undefined}
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            itemClassName={args.itemClassName || undefined}
+            titleClassName={args.titleClassName || undefined}
+            messageClassName={args.messageClassName || undefined}
+            actionsClassName={args.actionsClassName || undefined}
+          />
+        </Section>
         <Section title="Notification prop cases" description="Use the controls below; notifications render in fixed viewport positions.">
           <CaseGrid cases={notificationCases} />
         </Section>

@@ -32,6 +32,11 @@ export interface AccentTokens {
     danger?: string;
     dangerSoft?: string;
     dangerBorder?: string;
+    logBg?: string;
+    logRowBg?: string;
+    logBorder?: string;
+    logPayloadBg?: string;
+    logPayloadPreBg?: string;
     shadowPanel?: string;
     radiusPanel?: string;
     radiusControl?: string;
@@ -88,6 +93,11 @@ export declare function useAccent(accentKey?: AccentKey, tokens?: AccentTokens):
         danger: string;
         dangerSoft: string;
         dangerBorder: string;
+        logBg: string;
+        logRowBg: string;
+        logBorder: string;
+        logPayloadBg: string;
+        logPayloadPreBg: string;
         shadowPanel: string;
         radiusPanel: string;
         radiusControl: string;

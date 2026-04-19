@@ -9,7 +9,7 @@
   --rui-bg-card-2: #303466;
   --rui-bg-panel: #2d305f;
   --rui-bg-panel-2: #303466;
-  --rui-bg-input: #e7e9ef;
+  --rui-bg-input: rgba(25, 199, 220, 0.08);
   --rui-border-soft: rgba(255, 255, 255, 0.08);
   --rui-border-strong: rgba(255, 255, 255, 0.12);
   --rui-text-primary: #f3f5fc;
@@ -36,6 +36,11 @@
   --rui-danger: #f06d78;
   --rui-danger-soft: rgba(240, 109, 120, 0.18);
   --rui-danger-border: rgba(240, 109, 120, 0.55);
+  --rui-log-bg: #0b1022;
+  --rui-log-row-bg: transparent;
+  --rui-log-border: rgba(255, 255, 255, 0.06);
+  --rui-log-payload-bg: rgba(0, 0, 0, 0.2);
+  --rui-log-payload-pre-bg: #070b18;
   --rui-shadow-panel: 0 14px 30px rgba(6, 9, 35, 0.22);
   --rui-radius-panel: 14px;
   --rui-radius-control: 4px;
@@ -94,9 +99,9 @@
   }
 
   .rui-input {
-    border: 1px solid rgba(18, 22, 50, 0.28);
+    border: 1px solid var(--rui-accent-border-soft);
     background: var(--rui-bg-input);
-    color: #1c1f31;
+    color: var(--rui-text-primary);
     border-radius: var(--rui-radius-control);
   }
 
@@ -120,5 +125,25 @@
 
   .rui-scrollbar::-webkit-scrollbar-track {
     background: rgba(10, 12, 32, 0.2);
+  }
+
+  .rui-logger-viewport {
+    border-color: var(--rui-border-soft);
+    background: var(--rui-log-bg);
+  }
+
+  .rui-logger-row {
+    border-bottom-color: var(--rui-log-border);
+    background: var(--rui-log-row-bg);
+  }
+
+  .rui-logger-payload-row {
+    border-bottom-color: var(--rui-log-border);
+    background: var(--rui-log-payload-bg);
+  }
+
+  .rui-logger-payload-pre {
+    border-color: var(--rui-border-soft);
+    background: var(--rui-log-payload-pre-bg);
   }
 }

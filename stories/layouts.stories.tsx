@@ -19,6 +19,7 @@ import {
   type TableColumn,
 } from '../src/index';
 import { CaseGrid, Section, StoryShell, type StoryCase } from './story-helpers';
+import { docsSource, gridLayoutSource, pageLayoutSource, sidebarLayoutSource } from './story-source';
 
 const meta: Meta = {
   title: 'React UI/Layouts',
@@ -29,7 +30,7 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj;
+const accentOptions = ['default', 'teal', 'warning', 'danger', 'neutral', 'tailadmin', 'light-blue', 'light-success', 'light-warning', 'light-danger', 'light-neutral'];
 
 const rows = [
   { id: 'one', name: 'Overview refresh', owner: 'Mira Chen', state: 'Ready' },
@@ -366,10 +367,106 @@ const gridCases: StoryCase[] = [
   },
 ];
 
-export const PageLayout: Story = {
-  render: function PageLayoutStory() {
+interface PageLayoutArgs {
+  pageTitle: string;
+  pageName: string;
+  pageDescription: string;
+  actionLabel: string;
+  useActionButtonsAlias: boolean;
+  showSidebar: boolean;
+  showTopbar: boolean;
+  showFooter: boolean;
+  pageAccentKey: string;
+  pageClassName: string;
+  headerClassName: string;
+  contentClassName: string;
+  sidebarClassName: string;
+  headerTitle: string;
+  headerSubtitle: string;
+  headerActionLabel: string;
+  headerAccentKey: string;
+  headerClassSlot: string;
+  containerAccentKey: string;
+  containerClassName: string;
+}
+
+export const PageLayout: StoryObj<PageLayoutArgs> = {
+  args: {
+    pageTitle: 'Workspace',
+    pageName: '',
+    pageDescription: 'Generic page shell.',
+    actionLabel: 'Action',
+    useActionButtonsAlias: false,
+    showSidebar: true,
+    showTopbar: false,
+    showFooter: true,
+    pageAccentKey: 'default',
+    pageClassName: 'min-h-[520px]',
+    headerClassName: '',
+    contentClassName: 'space-y-4',
+    sidebarClassName: '',
+    headerTitle: 'Standalone header',
+    headerSubtitle: 'Composable header primitive.',
+    headerActionLabel: 'Header action',
+    headerAccentKey: 'default',
+    headerClassSlot: '',
+    containerAccentKey: 'default',
+    containerClassName: '',
+  },
+  argTypes: {
+    pageTitle: { name: 'title', control: 'text', table: { category: 'Page' } },
+    pageName: { name: 'pageName', control: 'text', table: { category: 'Page aliases' } },
+    pageDescription: { name: 'description', control: 'text', table: { category: 'Page' } },
+    actionLabel: { name: 'actions', control: 'text', table: { category: 'Page' } },
+    useActionButtonsAlias: { name: 'actionButtons', control: 'boolean', table: { category: 'Page aliases' } },
+    showSidebar: { name: 'sidebar', control: 'boolean', table: { category: 'Page' } },
+    showTopbar: { name: 'topbar', control: 'boolean', table: { category: 'Page' } },
+    showFooter: { name: 'footer', control: 'boolean', table: { category: 'Page' } },
+    pageAccentKey: { name: 'accentKey', control: 'select', options: accentOptions, table: { category: 'Page' } },
+    pageClassName: { name: 'className', control: 'text', table: { category: 'Page classes' } },
+    headerClassName: { name: 'headerClassName', control: 'text', table: { category: 'Page classes' } },
+    contentClassName: { name: 'contentClassName', control: 'text', table: { category: 'Page' } },
+    sidebarClassName: { name: 'sidebarClassName', control: 'text', table: { category: 'Page classes' } },
+    headerTitle: { name: 'PageHeader.title', control: 'text', table: { category: 'PageHeader' } },
+    headerSubtitle: { name: 'PageHeader.subtitle', control: 'text', table: { category: 'PageHeader aliases' } },
+    headerActionLabel: { name: 'PageHeader.actions', control: 'text', table: { category: 'PageHeader' } },
+    headerAccentKey: { name: 'PageHeader.accentKey', control: 'select', options: accentOptions, table: { category: 'PageHeader' } },
+    headerClassSlot: { name: 'PageHeader.className', control: 'text', table: { category: 'PageHeader classes' } },
+    containerAccentKey: { name: 'PageContainer.accentKey', control: 'select', options: accentOptions, table: { category: 'PageContainer' } },
+    containerClassName: { name: 'PageContainer.className', control: 'text', table: { category: 'PageContainer classes' } },
+  },
+  parameters: docsSource(pageLayoutSource, 'Exact Page, PageHeader, PageContainer, and Sidebar composition code.'),
+  render: function PageLayoutStory(args) {
     return (
       <StoryShell title="Page layout" description="Page, PageHeader, and PageContainer usage.">
+        <Section title="Controlled Page example" description="These controls map to Page props and update the rendered shell.">
+          <Page
+            title={args.pageTitle}
+            pageName={args.pageName || undefined}
+            description={args.pageDescription}
+            actions={!args.useActionButtonsAlias ? <Button size="sm">{args.actionLabel}</Button> : undefined}
+            actionButtons={args.useActionButtonsAlias ? <Button size="sm">{args.actionLabel}</Button> : undefined}
+            topbar={args.showTopbar ? <div className="border-b border-white/8 bg-black/20 px-4 py-2 text-sm text-white">Topbar slot</div> : null}
+            footer={args.showFooter ? <div className="text-sm text-[var(--rui-text-secondary)]">Footer slot</div> : null}
+            sidebar={args.showSidebar ? <SidebarDemo /> : null}
+            accentKey={args.pageAccentKey}
+            headerClassName={args.headerClassName || undefined}
+            contentClassName={args.contentClassName}
+            sidebarClassName={args.sidebarClassName || undefined}
+            className={args.pageClassName || undefined}
+          >
+            <PageHeader
+              title={args.headerTitle}
+              subtitle={args.headerSubtitle}
+              actions={<Button size="sm">{args.headerActionLabel}</Button>}
+              accentKey={args.headerAccentKey}
+              className={args.headerClassSlot || undefined}
+            />
+            <PageContainer accentKey={args.containerAccentKey} className={args.containerClassName || undefined}>
+              <Card>Page children render here.</Card>
+            </PageContainer>
+          </Page>
+        </Section>
         <Section title="Page cases" description="Shell, sidebar, slots, standalone header, and standalone container.">
           <CaseGrid cases={pageCases} />
         </Section>
@@ -378,10 +475,120 @@ export const PageLayout: Story = {
   },
 };
 
-export const SidebarLayout: Story = {
-  render: function SidebarLayoutStory() {
+interface SidebarLayoutArgs {
+  activeId: string;
+  collapsible: boolean;
+  collapsed: boolean;
+  defaultCollapsed: boolean;
+  header: string;
+  collapsedHeader: string;
+  footer: string;
+  showChildren: boolean;
+  customCollapseButton: boolean;
+  collapseTitle: string;
+  expandTitle: string;
+  collapsedWidthClassName: string;
+  expandedWidthClassName: string;
+  accentKey: string;
+  className: string;
+  itemClassName: string;
+  activeItemClassName: string;
+  groupClassName: string;
+  groupLabelClassName: string;
+  headerClassName: string;
+  footerClassName: string;
+  collapseButtonClassName: string;
+}
+
+export const SidebarLayout: StoryObj<SidebarLayoutArgs> = {
+  args: {
+    activeId: 'overview',
+    collapsible: true,
+    collapsed: false,
+    defaultCollapsed: false,
+    header: 'Edit navigation',
+    collapsedHeader: 'Nav',
+    footer: '3 sections',
+    showChildren: false,
+    customCollapseButton: false,
+    collapseTitle: 'Collapse sidebar',
+    expandTitle: 'Expand sidebar',
+    collapsedWidthClassName: 'w-[92px] min-w-[92px]',
+    expandedWidthClassName: 'w-[360px] min-w-[220px]',
+    accentKey: 'default',
+    className: '',
+    itemClassName: '',
+    activeItemClassName: '',
+    groupClassName: '',
+    groupLabelClassName: '',
+    headerClassName: '',
+    footerClassName: '',
+    collapseButtonClassName: '',
+  },
+  argTypes: {
+    activeId: { control: 'select', options: ['overview', 'strategy', 'execution', 'schedule', 'backtesting', 'workspace'], table: { category: 'Sidebar' } },
+    collapsible: { control: 'boolean', table: { category: 'Sidebar' } },
+    collapsed: { control: 'boolean', table: { category: 'Sidebar' } },
+    defaultCollapsed: { control: 'boolean', table: { category: 'Sidebar collapse' } },
+    header: { control: 'text', table: { category: 'Sidebar' } },
+    collapsedHeader: { control: 'text', table: { category: 'Sidebar slots' } },
+    footer: { control: 'text', table: { category: 'Sidebar' } },
+    showChildren: { name: 'children', control: 'boolean', table: { category: 'Sidebar slots' } },
+    customCollapseButton: { name: 'renderCollapseButton', control: 'boolean', table: { category: 'Sidebar slots' } },
+    collapseTitle: { control: 'text', table: { category: 'Sidebar' } },
+    expandTitle: { control: 'text', table: { category: 'Sidebar' } },
+    collapsedWidthClassName: { control: 'text', table: { category: 'Sidebar' } },
+    expandedWidthClassName: { control: 'text', table: { category: 'Sidebar' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'Sidebar' } },
+    className: { control: 'text', table: { category: 'Sidebar classes' } },
+    itemClassName: { control: 'text', table: { category: 'Sidebar classes' } },
+    activeItemClassName: { control: 'text', table: { category: 'Sidebar classes' } },
+    groupClassName: { control: 'text', table: { category: 'Sidebar classes' } },
+    groupLabelClassName: { control: 'text', table: { category: 'Sidebar classes' } },
+    headerClassName: { control: 'text', table: { category: 'Sidebar classes' } },
+    footerClassName: { control: 'text', table: { category: 'Sidebar classes' } },
+    collapseButtonClassName: { control: 'text', table: { category: 'Sidebar classes' } },
+  },
+  parameters: docsSource(sidebarLayoutSource, 'Exact Sidebar grouped navigation and collapse code.'),
+  render: function SidebarLayoutStory(args) {
     return (
       <StoryShell title="Sidebar layout" description="Sidebar item, active, disabled, children, header, and footer patterns.">
+        <Section title="Controlled Sidebar example" description="These controls map to Sidebar props and update collapse, active item, widths, and slots.">
+          <Sidebar
+            groups={sidebarGroups}
+            activeId={args.activeId}
+            collapsible={args.collapsible}
+            collapsed={args.collapsed}
+            defaultCollapsed={args.defaultCollapsed}
+            collapseTitle={args.collapseTitle}
+            expandTitle={args.expandTitle}
+            collapsedWidthClassName={args.collapsedWidthClassName}
+            expandedWidthClassName={args.expandedWidthClassName}
+            header={<div className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">{args.header}</div>}
+            collapsedHeader={<div className="text-xs font-semibold text-[var(--rui-text-tertiary)]">{args.collapsedHeader}</div>}
+            footer={args.footer ? <Badge>{args.footer}</Badge> : null}
+            renderCollapseButton={
+              args.customCollapseButton
+                ? ({ collapsed, buttonProps }) => (
+                    <Button variant="icon" size="sm" className="h-8 w-8 px-0" {...buttonProps}>
+                      <Icon name={collapsed ? 'sidebar-open' : 'sidebar-collapsed'} className="h-4 w-4" />
+                    </Button>
+                  )
+                : undefined
+            }
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            itemClassName={args.itemClassName || undefined}
+            activeItemClassName={args.activeItemClassName || undefined}
+            groupClassName={args.groupClassName || undefined}
+            groupLabelClassName={args.groupLabelClassName || undefined}
+            headerClassName={args.headerClassName || undefined}
+            footerClassName={args.footerClassName || undefined}
+            collapseButtonClassName={args.collapseButtonClassName || undefined}
+          >
+            {args.showChildren ? <Card padded="sm">Sidebar children slot</Card> : null}
+          </Sidebar>
+        </Section>
         <Section title="Sidebar cases" description="Navigation list with icons, badges, descriptions, and custom children.">
           <CaseGrid cases={sidebarCases} />
         </Section>
@@ -390,10 +597,137 @@ export const SidebarLayout: Story = {
   },
 };
 
-export const GridAndPanelLayouts: Story = {
-  render: function GridAndPanelLayoutsStory() {
+interface GridAndPanelArgs {
+  allowMovement: boolean;
+  allowResize: boolean;
+  allowCollapse: boolean;
+  allowFullscreen: boolean;
+  persistenceKey: string;
+  storageNamespace: string;
+  renderPanelActions: boolean;
+  renderHeader: boolean;
+  renderPanelControls: boolean;
+  renderMoveHandle: boolean;
+  renderResizeButton: boolean;
+  renderCollapseButton: boolean;
+  renderResetButton: boolean;
+  renderFullscreenButton: boolean;
+  searchableTable: boolean;
+  panelTitle: string;
+  panelDescription: string;
+  panelDefaultWidth: 'full' | 'half' | 'third';
+  accentKey: string;
+  className: string;
+  panelClassName: string;
+  panelHeaderClassName: string;
+  panelBodyClassName: string;
+  panelActionsClassName: string;
+}
+
+export const GridAndPanelLayouts: StoryObj<GridAndPanelArgs> = {
+  args: {
+    allowMovement: true,
+    allowResize: true,
+    allowCollapse: true,
+    allowFullscreen: true,
+    persistenceKey: '',
+    storageNamespace: 'storybook:layout',
+    renderPanelActions: true,
+    renderHeader: false,
+    renderPanelControls: false,
+    renderMoveHandle: false,
+    renderResizeButton: false,
+    renderCollapseButton: false,
+    renderResetButton: false,
+    renderFullscreenButton: false,
+    searchableTable: true,
+    panelTitle: 'Summary',
+    panelDescription: 'Movable and resizable summary panel.',
+    panelDefaultWidth: 'half',
+    accentKey: 'default',
+    className: '',
+    panelClassName: '',
+    panelHeaderClassName: '',
+    panelBodyClassName: '',
+    panelActionsClassName: '',
+  },
+  argTypes: {
+    allowMovement: { control: 'boolean', table: { category: 'GridLayout' } },
+    allowResize: { control: 'boolean', table: { category: 'GridLayout' } },
+    allowCollapse: { control: 'boolean', table: { category: 'GridLayout' } },
+    allowFullscreen: { control: 'boolean', table: { category: 'GridLayout' } },
+    persistenceKey: { control: 'text', table: { category: 'GridLayout persistence' } },
+    storageNamespace: { control: 'text', table: { category: 'GridLayout persistence' } },
+    renderPanelActions: { control: 'boolean', table: { category: 'GridLayout render props' } },
+    renderHeader: { control: 'boolean', table: { category: 'GridLayout render props' } },
+    renderPanelControls: { control: 'boolean', table: { category: 'GridLayout render props' } },
+    renderMoveHandle: { control: 'boolean', table: { category: 'DynamicPanel button renderers' } },
+    renderResizeButton: { control: 'boolean', table: { category: 'DynamicPanel button renderers' } },
+    renderCollapseButton: { control: 'boolean', table: { category: 'DynamicPanel button renderers' } },
+    renderResetButton: { control: 'boolean', table: { category: 'DynamicPanel button renderers' } },
+    renderFullscreenButton: { control: 'boolean', table: { category: 'DynamicPanel button renderers' } },
+    searchableTable: { name: 'Table.searchable', control: 'boolean', table: { category: 'GridLayout panels' } },
+    panelTitle: { name: 'panel.title', control: 'text', table: { category: 'DynamicPanel' } },
+    panelDescription: { name: 'panel.description', control: 'text', table: { category: 'DynamicPanel' } },
+    panelDefaultWidth: { name: 'panel.defaultWidth', control: 'select', options: ['full', 'half', 'third'], table: { category: 'GridPanelDefinition' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'GridLayout' } },
+    className: { control: 'text', table: { category: 'GridLayout classes' } },
+    panelClassName: { control: 'text', table: { category: 'GridLayout classes' } },
+    panelHeaderClassName: { control: 'text', table: { category: 'GridLayout classes' } },
+    panelBodyClassName: { control: 'text', table: { category: 'GridLayout classes' } },
+    panelActionsClassName: { control: 'text', table: { category: 'GridLayout classes' } },
+  },
+  parameters: docsSource(gridLayoutSource, 'Exact GridLayout and DynamicPanel composition code.'),
+  render: function GridAndPanelLayoutsStory(args) {
     return (
       <StoryShell title="GridLayout and DynamicPanel" description="Movable panel grid and standalone panel chrome.">
+        <Section title="Controlled GridLayout example" description="These controls map to GridLayout props and panel definitions.">
+          <GridLayout
+            allowMovement={args.allowMovement}
+            allowResize={args.allowResize}
+            allowCollapse={args.allowCollapse}
+            allowFullscreen={args.allowFullscreen}
+            persistenceKey={args.persistenceKey || undefined}
+            storageNamespace={args.storageNamespace || undefined}
+            renderPanelActions={args.renderPanelActions ? (panel) => (panel.id === 'summary' ? <Button size="sm">Validate</Button> : null) : undefined}
+            renderHeader={args.renderHeader ? (panel) => <div className="text-sm font-semibold text-white">{panel.title}</div> : undefined}
+            renderPanelControls={args.renderPanelControls ? ({ controls }) => <div className="flex items-center gap-1">{controls}</div> : undefined}
+            renderMoveHandle={
+              args.renderMoveHandle
+                ? ({ defaultButton }) => (
+                    <span title="Custom move handle" className="inline-flex">
+                      {defaultButton}
+                    </span>
+                  )
+                : undefined
+            }
+            renderResizeButton={args.renderResizeButton ? ({ defaultButton }) => defaultButton : undefined}
+            renderCollapseButton={args.renderCollapseButton ? ({ defaultButton }) => defaultButton : undefined}
+            renderResetButton={args.renderResetButton ? ({ defaultButton }) => defaultButton : undefined}
+            renderFullscreenButton={args.renderFullscreenButton ? ({ defaultButton }) => defaultButton : undefined}
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            panelClassName={args.panelClassName || undefined}
+            panelHeaderClassName={args.panelHeaderClassName || undefined}
+            panelBodyClassName={args.panelBodyClassName || undefined}
+            panelActionsClassName={args.panelActionsClassName || undefined}
+            panels={[
+              {
+                id: 'summary',
+                title: args.panelTitle,
+                description: args.panelDescription,
+                defaultWidth: args.panelDefaultWidth,
+                content: <ChipCard title="Open" value="24" helper="Items" />,
+              },
+              {
+                id: 'table',
+                title: 'Table',
+                defaultWidth: 'half',
+                content: <Table rows={rows} columns={columns} rowKey={(row) => row.id} searchable={args.searchableTable} />,
+              },
+            ]}
+          />
+        </Section>
         <Section title="Grid and panel cases" description="Default, locked, controlled, action slots, and standalone panel usage.">
           <CaseGrid cases={gridCases} />
         </Section>

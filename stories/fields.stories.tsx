@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 import { Badge, DateTimeSelector, Icon, Number as NumberAlias, NumberInput, Text, TextArea } from '../src/index';
 import { CaseGrid, Section, StoryShell, type StoryCase } from './story-helpers';
+import { useStoryArgsUpdater } from './story-args';
+import { docsSource, fieldsSource } from './story-source';
 
 const meta: Meta = {
   title: 'React UI/Fields',
@@ -12,7 +14,8 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj;
+const accentOptions = ['default', 'teal', 'warning', 'danger', 'neutral', 'tailadmin', 'light-blue', 'light-success', 'light-warning', 'light-danger', 'light-neutral'];
+const inputTypeOptions = ['text', 'password', 'email', 'url', 'search', 'tel', 'date', 'number'];
 
 function ControlledTextCase() {
   const [value, setValue] = useState('Quarterly planning');
@@ -389,10 +392,127 @@ const numberCases: StoryCase[] = [
   },
 ];
 
-export const TextField: Story = {
-  render: function TextFieldStory() {
+interface TextFieldArgs {
+  label: string;
+  value: string;
+  defaultValue: string;
+  placeholder: string;
+  description: string;
+  helperText: string;
+  error: string;
+  labelPosition: 'top' | 'left';
+  disabled: boolean;
+  required: boolean;
+  type: string;
+  name: string;
+  id: string;
+  autoComplete: string;
+  maxLength: number;
+  prefix: string;
+  suffix: string;
+  accentKey: string;
+  className: string;
+  wrapperClassName: string;
+  labelClassName: string;
+  descriptionClassName: string;
+  errorClassName: string;
+  helperClassName: string;
+  inputClassName: string;
+}
+
+export const TextField: StoryObj<TextFieldArgs> = {
+  args: {
+    label: 'Workspace name',
+    value: 'Quarterly planning',
+    defaultValue: '',
+    placeholder: 'Type here',
+    description: 'Shown beside the input.',
+    helperText: 'Visible to all workspace members.',
+    error: '',
+    labelPosition: 'top',
+    disabled: false,
+    required: false,
+    type: 'text',
+    name: 'workspaceName',
+    id: '',
+    autoComplete: '',
+    maxLength: 120,
+    prefix: 'none',
+    suffix: 'none',
+    accentKey: 'default',
+    className: '',
+    wrapperClassName: '',
+    labelClassName: '',
+    descriptionClassName: '',
+    errorClassName: '',
+    helperClassName: '',
+    inputClassName: '',
+  },
+  argTypes: {
+    label: { control: 'text', table: { category: 'Text' } },
+    value: { control: 'text', table: { category: 'Text' } },
+    defaultValue: { control: 'text', table: { category: 'Text' } },
+    placeholder: { control: 'text', table: { category: 'Text' } },
+    description: { control: 'text', table: { category: 'Text' } },
+    helperText: { control: 'text', table: { category: 'Text' } },
+    error: { control: 'text', table: { category: 'Text' } },
+    labelPosition: { control: 'select', options: ['top', 'left'], table: { category: 'Text' } },
+    disabled: { control: 'boolean', table: { category: 'Text' } },
+    required: { control: 'boolean', table: { category: 'Text' } },
+    type: { control: 'select', options: inputTypeOptions, table: { category: 'Text HTML props' } },
+    name: { control: 'text', table: { category: 'Text HTML props' } },
+    id: { control: 'text', table: { category: 'Text HTML props' } },
+    autoComplete: { control: 'text', table: { category: 'Text HTML props' } },
+    maxLength: { control: { type: 'number', min: 0, max: 500, step: 1 }, table: { category: 'Text HTML props' } },
+    prefix: { control: 'select', options: ['none', 'search', 'dollar', 'text'], table: { category: 'Text slots' } },
+    suffix: { control: 'select', options: ['none', 'badge', 'percent', 'text'], table: { category: 'Text slots' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'Text' } },
+    className: { control: 'text', table: { category: 'Text classes' } },
+    wrapperClassName: { control: 'text', table: { category: 'Text classes' } },
+    labelClassName: { control: 'text', table: { category: 'Text classes' } },
+    descriptionClassName: { control: 'text', table: { category: 'Text classes' } },
+    errorClassName: { control: 'text', table: { category: 'Text classes' } },
+    helperClassName: { control: 'text', table: { category: 'Text classes' } },
+    inputClassName: { control: 'text', table: { category: 'Text classes' } },
+  },
+  parameters: docsSource(fieldsSource, 'Exact field usage code for Text, TextArea, NumberInput, and DateTimeSelector.'),
+  render: function TextFieldStory(args) {
+    const updateArgs = useStoryArgsUpdater<TextFieldArgs>();
+    const prefix = args.prefix === 'search' ? <Icon name="search" className="h-4 w-4" /> : args.prefix === 'dollar' ? '$' : args.prefix === 'text' ? 'Pre' : undefined;
+    const suffix = args.suffix === 'badge' ? <Badge>live</Badge> : args.suffix === 'percent' ? '%' : args.suffix === 'text' ? 'Suf' : undefined;
+
     return (
       <StoryShell title="Text field" description="Every Text prop pattern used by app settings, toolbar filters, credential forms, and configuration rows.">
+        <Section title="Controlled Text example" description="These controls map to Text props.">
+          <Text
+            label={args.label}
+            value={args.value}
+            onChange={(value) => updateArgs({ value })}
+            defaultValue={args.defaultValue || undefined}
+            placeholder={args.placeholder}
+            description={args.description}
+            helperText={args.error ? undefined : args.helperText}
+            error={args.error || undefined}
+            labelPosition={args.labelPosition}
+            disabled={args.disabled}
+            required={args.required}
+            type={args.type}
+            name={args.name || undefined}
+            id={args.id || undefined}
+            autoComplete={args.autoComplete || undefined}
+            maxLength={args.maxLength || undefined}
+            prefix={prefix}
+            suffix={suffix}
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            wrapperClassName={args.wrapperClassName || undefined}
+            labelClassName={args.labelClassName || undefined}
+            descriptionClassName={args.descriptionClassName || undefined}
+            errorClassName={args.errorClassName || undefined}
+            helperClassName={args.helperClassName || undefined}
+            inputClassName={args.inputClassName || undefined}
+          />
+        </Section>
         <Section title="Text cases" description="Basic, controlled, password, URL, date, numeric string, labels, validation, adornments, accent, and slot classes.">
           <CaseGrid cases={textCases} />
         </Section>
@@ -401,10 +521,113 @@ export const TextField: Story = {
   },
 };
 
-export const TextAreaField: Story = {
-  render: function TextAreaFieldStory() {
+interface TextAreaFieldArgs {
+  label: string;
+  value: string;
+  defaultValue: string;
+  placeholder: string;
+  description: string;
+  helperText: string;
+  rows: number;
+  labelPosition: 'top' | 'left';
+  error: string;
+  disabled: boolean;
+  required: boolean;
+  name: string;
+  id: string;
+  maxLength: number;
+  accentKey: string;
+  className: string;
+  wrapperClassName: string;
+  labelClassName: string;
+  descriptionClassName: string;
+  errorClassName: string;
+  helperClassName: string;
+  textareaClassName: string;
+}
+
+export const TextAreaField: StoryObj<TextAreaFieldArgs> = {
+  args: {
+    label: 'Notes',
+    value: 'Editable multi-line value.',
+    defaultValue: '',
+    placeholder: 'Add context',
+    description: 'Use this for longer review copy.',
+    helperText: 'Supports the same label and error API as Text.',
+    rows: 4,
+    labelPosition: 'top',
+    error: '',
+    disabled: false,
+    required: false,
+    name: 'notes',
+    id: '',
+    maxLength: 500,
+    accentKey: 'default',
+    className: '',
+    wrapperClassName: '',
+    labelClassName: '',
+    descriptionClassName: '',
+    errorClassName: '',
+    helperClassName: '',
+    textareaClassName: '',
+  },
+  argTypes: {
+    label: { control: 'text', table: { category: 'TextArea' } },
+    value: { control: 'text', table: { category: 'TextArea' } },
+    defaultValue: { control: 'text', table: { category: 'TextArea' } },
+    placeholder: { control: 'text', table: { category: 'TextArea' } },
+    description: { control: 'text', table: { category: 'TextArea' } },
+    helperText: { control: 'text', table: { category: 'TextArea' } },
+    rows: { control: { type: 'number', min: 2, max: 10, step: 1 }, table: { category: 'TextArea' } },
+    labelPosition: { control: 'select', options: ['top', 'left'], table: { category: 'TextArea' } },
+    error: { control: 'text', table: { category: 'TextArea' } },
+    disabled: { control: 'boolean', table: { category: 'TextArea' } },
+    required: { control: 'boolean', table: { category: 'TextArea' } },
+    name: { control: 'text', table: { category: 'TextArea HTML props' } },
+    id: { control: 'text', table: { category: 'TextArea HTML props' } },
+    maxLength: { control: { type: 'number', min: 0, max: 1000, step: 1 }, table: { category: 'TextArea HTML props' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'TextArea' } },
+    className: { control: 'text', table: { category: 'TextArea classes' } },
+    wrapperClassName: { control: 'text', table: { category: 'TextArea classes' } },
+    labelClassName: { control: 'text', table: { category: 'TextArea classes' } },
+    descriptionClassName: { control: 'text', table: { category: 'TextArea classes' } },
+    errorClassName: { control: 'text', table: { category: 'TextArea classes' } },
+    helperClassName: { control: 'text', table: { category: 'TextArea classes' } },
+    textareaClassName: { control: 'text', table: { category: 'TextArea classes' } },
+  },
+  parameters: docsSource(fieldsSource, 'Exact TextArea usage appears in the full field composition snippet.'),
+  render: function TextAreaFieldStory(args) {
+    const updateArgs = useStoryArgsUpdater<TextAreaFieldArgs>();
+
     return (
       <StoryShell title="TextArea field" description="Multi-line field prop usage and rendering states.">
+        <Section title="Controlled TextArea example" description="These controls map to TextArea props.">
+          <TextArea
+            label={args.label}
+            value={args.value}
+            onChange={(value) => updateArgs({ value })}
+            defaultValue={args.defaultValue || undefined}
+            placeholder={args.placeholder}
+            description={args.description || undefined}
+            helperText={args.error ? undefined : args.helperText || undefined}
+            rows={args.rows}
+            labelPosition={args.labelPosition}
+            error={args.error || undefined}
+            disabled={args.disabled}
+            required={args.required}
+            name={args.name || undefined}
+            id={args.id || undefined}
+            maxLength={args.maxLength || undefined}
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            wrapperClassName={args.wrapperClassName || undefined}
+            labelClassName={args.labelClassName || undefined}
+            descriptionClassName={args.descriptionClassName || undefined}
+            errorClassName={args.errorClassName || undefined}
+            helperClassName={args.helperClassName || undefined}
+            textareaClassName={args.textareaClassName || undefined}
+          />
+        </Section>
         <Section title="TextArea cases" description="Controlled and uncontrolled notes, rows, validation, disabled state, left labels, accent, and slot classes.">
           <CaseGrid cases={textAreaCases} />
         </Section>
@@ -413,10 +636,117 @@ export const TextAreaField: Story = {
   },
 };
 
-export const DateTimeSelectorField: Story = {
-  render: function DateTimeSelectorFieldStory() {
+interface DateTimeSelectorFieldArgs {
+  label: string;
+  value: string;
+  defaultValue: string;
+  placeholder: string;
+  description: string;
+  helperText: string;
+  type: 'datetime-local' | 'date' | 'time' | 'month' | 'week';
+  min: string;
+  max: string;
+  error: string;
+  disabled: boolean;
+  required: boolean;
+  labelPosition: 'top' | 'left';
+  name: string;
+  id: string;
+  accentKey: string;
+  className: string;
+  wrapperClassName: string;
+  labelClassName: string;
+  descriptionClassName: string;
+  errorClassName: string;
+  helperClassName: string;
+  inputClassName: string;
+}
+
+export const DateTimeSelectorField: StoryObj<DateTimeSelectorFieldArgs> = {
+  args: {
+    label: 'Start time',
+    value: '2026-04-19T10:30',
+    defaultValue: '',
+    placeholder: '',
+    description: 'Choose a date or time value.',
+    helperText: 'Uses the native browser date/time input.',
+    type: 'datetime-local',
+    min: '',
+    max: '',
+    error: '',
+    disabled: false,
+    required: false,
+    labelPosition: 'top',
+    name: 'startTime',
+    id: '',
+    accentKey: 'default',
+    className: '',
+    wrapperClassName: '',
+    labelClassName: '',
+    descriptionClassName: '',
+    errorClassName: '',
+    helperClassName: '',
+    inputClassName: '',
+  },
+  argTypes: {
+    label: { control: 'text', table: { category: 'DateTimeSelector' } },
+    value: { control: 'text', table: { category: 'DateTimeSelector' } },
+    defaultValue: { control: 'text', table: { category: 'DateTimeSelector' } },
+    placeholder: { control: 'text', table: { category: 'DateTimeSelector' } },
+    description: { control: 'text', table: { category: 'DateTimeSelector' } },
+    helperText: { control: 'text', table: { category: 'DateTimeSelector' } },
+    type: { control: 'select', options: ['datetime-local', 'date', 'time', 'month', 'week'], table: { category: 'DateTimeSelector' } },
+    min: { control: 'text', table: { category: 'DateTimeSelector' } },
+    max: { control: 'text', table: { category: 'DateTimeSelector' } },
+    error: { control: 'text', table: { category: 'DateTimeSelector' } },
+    disabled: { control: 'boolean', table: { category: 'DateTimeSelector' } },
+    required: { control: 'boolean', table: { category: 'DateTimeSelector' } },
+    labelPosition: { control: 'select', options: ['top', 'left'], table: { category: 'DateTimeSelector' } },
+    name: { control: 'text', table: { category: 'DateTimeSelector HTML props' } },
+    id: { control: 'text', table: { category: 'DateTimeSelector HTML props' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'DateTimeSelector' } },
+    className: { control: 'text', table: { category: 'DateTimeSelector classes' } },
+    wrapperClassName: { control: 'text', table: { category: 'DateTimeSelector classes' } },
+    labelClassName: { control: 'text', table: { category: 'DateTimeSelector classes' } },
+    descriptionClassName: { control: 'text', table: { category: 'DateTimeSelector classes' } },
+    errorClassName: { control: 'text', table: { category: 'DateTimeSelector classes' } },
+    helperClassName: { control: 'text', table: { category: 'DateTimeSelector classes' } },
+    inputClassName: { control: 'text', table: { category: 'DateTimeSelector classes' } },
+  },
+  parameters: docsSource(fieldsSource, 'Exact DateTimeSelector usage appears in the full field composition snippet.'),
+  render: function DateTimeSelectorFieldStory(args) {
+    const updateArgs = useStoryArgsUpdater<DateTimeSelectorFieldArgs>();
+
     return (
       <StoryShell title="DateTimeSelector field" description="Dedicated date and datetime selector built on the same label, helper, error, and accent API as Text.">
+        <Section title="Controlled DateTimeSelector example" description="These controls map to DateTimeSelector props.">
+          <DateTimeSelector
+            label={args.label}
+            value={args.value}
+            onChange={(value) => updateArgs({ value })}
+            defaultValue={args.defaultValue || undefined}
+            placeholder={args.placeholder || undefined}
+            description={args.description || undefined}
+            helperText={args.error ? undefined : args.helperText || undefined}
+            type={args.type}
+            min={args.min || undefined}
+            max={args.max || undefined}
+            error={args.error || undefined}
+            disabled={args.disabled}
+            required={args.required}
+            labelPosition={args.labelPosition}
+            name={args.name || undefined}
+            id={args.id || undefined}
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            wrapperClassName={args.wrapperClassName || undefined}
+            labelClassName={args.labelClassName || undefined}
+            descriptionClassName={args.descriptionClassName || undefined}
+            errorClassName={args.errorClassName || undefined}
+            helperClassName={args.helperClassName || undefined}
+            inputClassName={args.inputClassName || undefined}
+          />
+        </Section>
         <Section title="Date and datetime cases" description="Date-only, datetime-local, composed ranges, and validation states.">
           <CaseGrid cases={dateTimeCases} />
         </Section>
@@ -425,10 +755,126 @@ export const DateTimeSelectorField: Story = {
   },
 };
 
-export const NumberInputField: Story = {
-  render: function NumberInputFieldStory() {
+interface NumberInputFieldArgs {
+  label: string;
+  value: number | null;
+  defaultValue: number | null;
+  placeholder: string;
+  description: string;
+  helperText: string;
+  prefix: string;
+  suffix: string;
+  min: number;
+  max: number;
+  step: number;
+  error: string;
+  disabled: boolean;
+  required: boolean;
+  labelPosition: 'top' | 'left';
+  name: string;
+  id: string;
+  accentKey: string;
+  className: string;
+  wrapperClassName: string;
+  labelClassName: string;
+  descriptionClassName: string;
+  errorClassName: string;
+  helperClassName: string;
+  inputClassName: string;
+}
+
+export const NumberInputField: StoryObj<NumberInputFieldArgs> = {
+  args: {
+    label: 'Amount',
+    value: 1250,
+    defaultValue: null,
+    placeholder: '0.00',
+    description: 'Parsed as number or null.',
+    helperText: 'onValueChange also exposes the raw input string.',
+    prefix: '$',
+    suffix: '',
+    min: 0,
+    max: 10000,
+    step: 1,
+    error: '',
+    disabled: false,
+    required: false,
+    labelPosition: 'top',
+    name: 'amount',
+    id: '',
+    accentKey: 'default',
+    className: '',
+    wrapperClassName: '',
+    labelClassName: '',
+    descriptionClassName: '',
+    errorClassName: '',
+    helperClassName: '',
+    inputClassName: '',
+  },
+  argTypes: {
+    label: { control: 'text', table: { category: 'NumberInput' } },
+    value: { control: 'number', table: { category: 'NumberInput' } },
+    defaultValue: { control: 'number', table: { category: 'NumberInput' } },
+    placeholder: { control: 'text', table: { category: 'NumberInput' } },
+    description: { control: 'text', table: { category: 'NumberInput' } },
+    helperText: { control: 'text', table: { category: 'NumberInput' } },
+    prefix: { control: 'text', table: { category: 'NumberInput' } },
+    suffix: { control: 'text', table: { category: 'NumberInput' } },
+    min: { control: 'number', table: { category: 'NumberInput' } },
+    max: { control: 'number', table: { category: 'NumberInput' } },
+    step: { control: 'number', table: { category: 'NumberInput' } },
+    error: { control: 'text', table: { category: 'NumberInput' } },
+    disabled: { control: 'boolean', table: { category: 'NumberInput' } },
+    required: { control: 'boolean', table: { category: 'NumberInput' } },
+    labelPosition: { control: 'select', options: ['top', 'left'], table: { category: 'NumberInput' } },
+    name: { control: 'text', table: { category: 'NumberInput HTML props' } },
+    id: { control: 'text', table: { category: 'NumberInput HTML props' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'NumberInput' } },
+    className: { control: 'text', table: { category: 'NumberInput classes' } },
+    wrapperClassName: { control: 'text', table: { category: 'NumberInput classes' } },
+    labelClassName: { control: 'text', table: { category: 'NumberInput classes' } },
+    descriptionClassName: { control: 'text', table: { category: 'NumberInput classes' } },
+    errorClassName: { control: 'text', table: { category: 'NumberInput classes' } },
+    helperClassName: { control: 'text', table: { category: 'NumberInput classes' } },
+    inputClassName: { control: 'text', table: { category: 'NumberInput classes' } },
+  },
+  parameters: docsSource(fieldsSource, 'Exact NumberInput usage appears in the full field composition snippet.'),
+  render: function NumberInputFieldStory(args) {
+    const updateArgs = useStoryArgsUpdater<NumberInputFieldArgs>();
+
     return (
       <StoryShell title="NumberInput and Number" description="Parsed numeric field behavior including the public Number alias.">
+        <Section title="Controlled NumberInput example" description="These controls map to NumberInput props.">
+          <NumberInput
+            label={args.label}
+            value={args.value}
+            onChange={(value) => updateArgs({ value })}
+            onValueChange={(value) => updateArgs({ value })}
+            defaultValue={args.defaultValue}
+            placeholder={args.placeholder}
+            description={args.description || undefined}
+            helperText={args.error ? undefined : args.helperText || undefined}
+            prefix={args.prefix}
+            suffix={args.suffix}
+            min={args.min}
+            max={args.max}
+            step={args.step}
+            error={args.error || undefined}
+            disabled={args.disabled}
+            required={args.required}
+            labelPosition={args.labelPosition}
+            name={args.name || undefined}
+            id={args.id || undefined}
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            wrapperClassName={args.wrapperClassName || undefined}
+            labelClassName={args.labelClassName || undefined}
+            descriptionClassName={args.descriptionClassName || undefined}
+            errorClassName={args.errorClassName || undefined}
+            helperClassName={args.helperClassName || undefined}
+            inputClassName={args.inputClassName || undefined}
+          />
+        </Section>
         <Section title="Number cases" description="Currency, percentages, null values, transitional strings, errors, left labels, accent keys, and slot classes.">
           <CaseGrid cases={numberCases} />
         </Section>

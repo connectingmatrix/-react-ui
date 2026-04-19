@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import Table, { type TableColumn, type TableState } from '../src/elements/Table';
@@ -81,6 +81,20 @@ describe('Table', () => {
 
     expect(onChange).toHaveBeenCalledWith(['a'], [rows[0]]);
     expect(screen.getByText('1 selected')).toBeInTheDocument();
+  });
+
+  it('keeps expand controls before the selection column with old bot table widths', () => {
+    const { container } = render(
+      <Table rows={rows} columns={columns.slice(0, 2)} rowKey={(row) => row.id} selection={{ mode: 'multi' }} renderExpandedContent={(row) => <div>Expanded {row.name}</div>} />,
+    );
+
+    const controlColumns = Array.from(container.querySelectorAll('col')).slice(0, 2);
+    expect(controlColumns[0]).toHaveStyle({ width: '56px' });
+    expect(controlColumns[1]).toHaveStyle({ width: '72px' });
+
+    const firstRowCells = screen.getAllByRole('row')[1].querySelectorAll('td');
+    expect(firstRowCells[0].querySelector('button[title="Expand row"]')).toBeInTheDocument();
+    expect(firstRowCells[1].querySelector('input[type="checkbox"]')).toBeInTheDocument();
   });
 
   it('toggles single row selection off when the selected radio is clicked again', async () => {
@@ -248,5 +262,50 @@ describe('Table', () => {
     await user.click(screen.getByRole('button', { name: /score/i }));
 
     expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it('resizes columns and reports persistent width state', () => {
+    const onStateChange = vi.fn();
+    render(<Table rows={rows} columns={columns.slice(0, 3)} rowKey={(row) => row.id} onStateChange={onStateChange} />);
+
+    const nameHeader = screen.getByRole('columnheader', { name: /name/i });
+    const resizeHandle = nameHeader.querySelector('[aria-hidden="true"]');
+    expect(resizeHandle).toBeInTheDocument();
+
+    fireEvent.mouseDown(resizeHandle!, { clientX: 100 });
+    fireEvent.mouseMove(window, { clientX: 180 });
+    fireEvent.mouseUp(window);
+
+    expect(onStateChange).toHaveBeenLastCalledWith(expect.objectContaining({ columnWidths: expect.objectContaining({ name: expect.any(Number) }) }));
+    expect(onStateChange.mock.lastCall?.[0].columnWidths.name).toBeGreaterThan(160);
+  });
+
+  it('reorders columns and reports persistent order state', () => {
+    const onStateChange = vi.fn();
+    render(<Table rows={rows} columns={columns.slice(0, 3)} rowKey={(row) => row.id} onStateChange={onStateChange} />);
+
+    const scoreHeader = screen.getByRole('columnheader', { name: /score/i });
+    const nameHeader = screen.getByRole('columnheader', { name: /name/i });
+    const dataTransfer = {
+      data: {} as Record<string, string>,
+      effectAllowed: '',
+      dropEffect: '',
+      setDragImage: vi.fn(),
+      setData(type: string, value: string) {
+        this.data[type] = value;
+      },
+      getData(type: string) {
+        return this.data[type] || '';
+      },
+    };
+
+    fireEvent.dragStart(scoreHeader, { dataTransfer });
+    fireEvent.dragOver(nameHeader, { dataTransfer });
+    fireEvent.drop(nameHeader, { dataTransfer });
+
+    expect(dataTransfer.setDragImage).toHaveBeenCalled();
+    expect(document.body.querySelector('[style*="-10000px"]')).not.toBeInTheDocument();
+    expect(onStateChange).toHaveBeenLastCalledWith(expect.objectContaining({ columnOrder: ['score', 'name', 'status'] }));
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent?.replace(/[↑↓•]/g, '').trim())).toEqual(['Score', 'Name', 'Status']);
   });
 });

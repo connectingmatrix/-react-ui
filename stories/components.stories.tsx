@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 import { Badge, Banner, Button, Card, ChipCard, Icon, RadioCard, SelectBox, Switch, ToggleCard, Tooltip, type BadgeTone, type SelectBoxOption } from '../src/index';
 import { CaseGrid, Section, StoryShell, type StoryCase } from './story-helpers';
+import { useStoryArgsUpdater } from './story-args';
+import { buttonSource, docsSource, selectBoxSource } from './story-source';
 
 const meta: Meta = {
   title: 'React UI/Components',
@@ -12,13 +14,66 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj;
-
-const options = [
+const options: SelectBoxOption<string>[] = [
   { label: 'Design Systems', value: 'design', description: 'Reusable UI foundations' },
   { label: 'Platform', value: 'platform', description: 'Delivery, runtime, and infra' },
   { label: 'Research', value: 'research', description: 'Insights and measurement' },
   { label: 'Support Ops', value: 'support', description: 'Customer-facing operations' },
+];
+
+const accentOptions = ['default', 'teal', 'warning', 'danger', 'neutral', 'tailadmin', 'light-blue', 'light-success', 'light-warning', 'light-danger', 'light-neutral'];
+const iconOptions = [
+  'none',
+  'actions',
+  'alert',
+  'bars',
+  'bell',
+  'card',
+  'chart',
+  'check',
+  'chevron-down',
+  'chevron-right',
+  'close',
+  'coins',
+  'dollar',
+  'download',
+  'exclamation',
+  'eye',
+  'filter',
+  'folder',
+  'grid',
+  'info',
+  'live',
+  'maximize',
+  'maximize-screen',
+  'menu',
+  'minimize',
+  'minimize-screen',
+  'minus',
+  'moon',
+  'panel',
+  'panel-restore',
+  'pause',
+  'play',
+  'plus',
+  'refresh',
+  'save',
+  'search',
+  'settings',
+  'share',
+  'sidebar-collapsed',
+  'sidebar-open',
+  'sparkle',
+  'stop',
+  'store',
+  'support',
+  'swap',
+  'timer',
+  'trash',
+  'trenddown',
+  'trendup',
+  'user',
+  'wallet',
 ];
 
 function ControlledSingleSelect() {
@@ -589,10 +644,83 @@ const tooltipIconCases: StoryCase[] = [
   },
 ];
 
-export const ButtonComponent: Story = {
-  render: function ButtonComponentStory() {
+interface ButtonComponentArgs {
+  variant: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'warning' | 'subtle' | 'icon';
+  size: 'sm' | 'md' | 'lg';
+  type: 'button' | 'submit' | 'reset';
+  loading: boolean;
+  disabled: boolean;
+  fullWidth: boolean;
+  label: string;
+  leftIcon: string;
+  rightIcon: string;
+  accentKey: string;
+  className: string;
+  leftIconClassName: string;
+  rightIconClassName: string;
+  ariaLabel: string;
+  title: string;
+}
+
+export const ButtonComponent: StoryObj<ButtonComponentArgs> = {
+  args: {
+    variant: 'outline',
+    size: 'md',
+    type: 'button',
+    loading: false,
+    disabled: false,
+    fullWidth: false,
+    label: 'Save changes',
+    leftIcon: 'save',
+    rightIcon: 'chevron-right',
+    accentKey: 'default',
+    className: '',
+    leftIconClassName: '',
+    rightIconClassName: '',
+    ariaLabel: '',
+    title: '',
+  },
+  argTypes: {
+    variant: { control: 'select', options: ['primary', 'secondary', 'outline', 'ghost', 'danger', 'success', 'warning', 'subtle', 'icon'], table: { category: 'Button' } },
+    size: { control: 'select', options: ['sm', 'md', 'lg'], table: { category: 'Button' } },
+    type: { control: 'select', options: ['button', 'submit', 'reset'], table: { category: 'Button' } },
+    loading: { control: 'boolean', table: { category: 'Button' } },
+    disabled: { control: 'boolean', table: { category: 'Button' } },
+    fullWidth: { control: 'boolean', table: { category: 'Button' } },
+    label: { name: 'children', control: 'text', table: { category: 'Button' } },
+    leftIcon: { control: 'select', options: iconOptions, table: { category: 'Button' } },
+    rightIcon: { control: 'select', options: iconOptions, table: { category: 'Button' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'Button' } },
+    className: { control: 'text', table: { category: 'Button slots/classes' } },
+    leftIconClassName: { control: 'text', table: { category: 'Button slots/classes' } },
+    rightIconClassName: { control: 'text', table: { category: 'Button slots/classes' } },
+    ariaLabel: { name: 'aria-label', control: 'text', table: { category: 'Button HTML props' } },
+    title: { control: 'text', table: { category: 'Button HTML props' } },
+  },
+  parameters: docsSource(buttonSource, 'Exact Button usage code with icons, variant, and size props.'),
+  render: function ButtonComponentStory(args) {
     return (
       <StoryShell title="Button" description="Button prop usage and rendering across action bars, toolbar icons, bulk actions, modal actions, and loading states.">
+        <Section title="Controlled Button example" description="These controls map to Button props.">
+          <Button
+            variant={args.variant}
+            size={args.size}
+            type={args.type}
+            loading={args.loading}
+            disabled={args.disabled}
+            fullWidth={args.fullWidth}
+            accentKey={args.accentKey}
+            leftIcon={args.variant === 'icon' || args.leftIcon === 'none' ? undefined : <Icon name={args.leftIcon} className="h-4 w-4" />}
+            rightIcon={args.variant === 'icon' || args.rightIcon === 'none' ? undefined : <Icon name={args.rightIcon} className="h-4 w-4" />}
+            leftIconClassName={args.leftIconClassName || undefined}
+            rightIconClassName={args.rightIconClassName || undefined}
+            aria-label={args.ariaLabel || (args.variant === 'icon' ? args.label : undefined)}
+            title={args.title || undefined}
+            className={args.variant === 'icon' ? `h-9 w-9 px-0 ${args.className}` : args.className || undefined}
+          >
+            {args.variant === 'icon' ? <Icon name={args.leftIcon === 'none' ? 'save' : args.leftIcon} className="h-4 w-4" /> : args.label}
+          </Button>
+        </Section>
         <Section title="Button cases" description="Variants, sizes, icons, loading, disabled, full width, and accent override.">
           <CaseGrid cases={buttonCases} />
         </Section>
@@ -601,10 +729,214 @@ export const ButtonComponent: Story = {
   },
 };
 
-export const SelectBoxComponent: Story = {
-  render: function SelectBoxComponentStory() {
+interface SelectBoxComponentArgs {
+  mode: 'single' | 'multiple';
+  label: string;
+  description: string;
+  helperText: string;
+  placeholder: string;
+  value: string;
+  defaultValue: string;
+  searchPlaceholder: string;
+  emptyState: string;
+  searchable: boolean;
+  clearable: boolean;
+  showSelectAll: boolean;
+  showClear: boolean;
+  selectAllLabel: string;
+  clearLabel: string;
+  disabled: boolean;
+  labelPosition: 'top' | 'left';
+  error: string;
+  endAdornment: string;
+  summaryText: string;
+  menuHeader: boolean;
+  customRenderOption: boolean;
+  customRenderValue: boolean;
+  objectValues: boolean;
+  disabledOption: boolean;
+  customOptionKey: boolean;
+  customOptionEquality: boolean;
+  accentKey: string;
+  className: string;
+  wrapperClassName: string;
+  labelClassName: string;
+  descriptionClassName: string;
+  errorClassName: string;
+  helperClassName: string;
+  triggerClassName: string;
+  menuClassName: string;
+  optionClassName: string;
+  searchClassName: string;
+  summaryClassName: string;
+  endAdornmentClassName: string;
+}
+
+export const SelectBoxComponent: StoryObj<SelectBoxComponentArgs> = {
+  args: {
+    mode: 'single',
+    label: 'Team',
+    description: 'Choose one or more teams.',
+    helperText: 'Search is available inside the dropdown.',
+    placeholder: 'Select a team',
+    value: 'platform',
+    defaultValue: 'design',
+    searchPlaceholder: 'Search teams',
+    emptyState: 'No matching teams',
+    searchable: true,
+    clearable: true,
+    showSelectAll: true,
+    showClear: true,
+    selectAllLabel: 'Select all',
+    clearLabel: 'Clear',
+    disabled: false,
+    labelPosition: 'top',
+    error: '',
+    endAdornment: 'none',
+    summaryText: '',
+    menuHeader: false,
+    customRenderOption: false,
+    customRenderValue: false,
+    objectValues: false,
+    disabledOption: false,
+    customOptionKey: false,
+    customOptionEquality: false,
+    accentKey: 'default',
+    className: '',
+    wrapperClassName: '',
+    labelClassName: '',
+    descriptionClassName: '',
+    errorClassName: '',
+    helperClassName: '',
+    triggerClassName: '',
+    menuClassName: '',
+    optionClassName: '',
+    searchClassName: '',
+    summaryClassName: '',
+    endAdornmentClassName: '',
+  },
+  argTypes: {
+    mode: { control: 'select', options: ['single', 'multiple'], table: { category: 'SelectBox' } },
+    label: { control: 'text', table: { category: 'SelectBox' } },
+    description: { control: 'text', table: { category: 'SelectBox' } },
+    helperText: { control: 'text', table: { category: 'SelectBox' } },
+    placeholder: { control: 'text', table: { category: 'SelectBox' } },
+    value: { control: 'text', table: { category: 'SelectBox state' } },
+    defaultValue: { control: 'text', table: { category: 'SelectBox state' } },
+    searchPlaceholder: { control: 'text', table: { category: 'SelectBox' } },
+    emptyState: { control: 'text', table: { category: 'SelectBox' } },
+    searchable: { control: 'boolean', table: { category: 'SelectBox' } },
+    clearable: { control: 'boolean', table: { category: 'SelectBox' } },
+    showSelectAll: { control: 'boolean', table: { category: 'SelectBox' } },
+    showClear: { control: 'boolean', table: { category: 'SelectBox' } },
+    selectAllLabel: { control: 'text', table: { category: 'SelectBox' } },
+    clearLabel: { control: 'text', table: { category: 'SelectBox' } },
+    disabled: { control: 'boolean', table: { category: 'SelectBox' } },
+    labelPosition: { control: 'select', options: ['top', 'left'], table: { category: 'SelectBox' } },
+    error: { control: 'text', table: { category: 'SelectBox' } },
+    endAdornment: { control: 'select', options: iconOptions, table: { category: 'SelectBox slots' } },
+    summaryText: { control: 'text', table: { category: 'SelectBox slots' } },
+    menuHeader: { control: 'boolean', table: { category: 'SelectBox slots' } },
+    customRenderOption: { name: 'renderOption', control: 'boolean', table: { category: 'SelectBox render props' } },
+    customRenderValue: { name: 'renderValue', control: 'boolean', table: { category: 'SelectBox render props' } },
+    objectValues: { name: 'options object values', control: 'boolean', table: { category: 'SelectBox options' } },
+    disabledOption: { name: 'option.disabled', control: 'boolean', table: { category: 'SelectBox options' } },
+    customOptionKey: { name: 'getOptionKey', control: 'boolean', table: { category: 'SelectBox options' } },
+    customOptionEquality: { name: 'isOptionEqual', control: 'boolean', table: { category: 'SelectBox options' } },
+    accentKey: { control: 'select', options: accentOptions, table: { category: 'SelectBox' } },
+    className: { control: 'text', table: { category: 'SelectBox classes' } },
+    wrapperClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    labelClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    descriptionClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    errorClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    helperClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    triggerClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    menuClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    optionClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    searchClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    summaryClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+    endAdornmentClassName: { control: 'text', table: { category: 'SelectBox classes' } },
+  },
+  parameters: docsSource(selectBoxSource, 'Exact SelectBox usage code with typed options and controlled multiple selection.'),
+  render: function SelectBoxComponentStory(args) {
+    const updateArgs = useStoryArgsUpdater<SelectBoxComponentArgs>();
+    const stringOptions = args.disabledOption ? options.map((option) => (option.value === 'support' ? { ...option, disabled: true } : option)) : options;
+    const objectOptions: SelectBoxOption<{ id: string; label: string }>[] = stringOptions.map((option) => ({
+      value: { id: option.value, label: String(option.label) },
+      label: option.label,
+      text: String(option.label),
+      description: option.description,
+      disabled: option.disabled,
+    }));
+    const selectedIds = args.value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const resolvedValue = args.objectValues
+      ? args.mode === 'multiple'
+        ? objectOptions.filter((option) => selectedIds.includes(option.value.id)).map((option) => option.value)
+        : objectOptions.find((option) => option.value.id === args.value)?.value
+      : args.mode === 'multiple'
+        ? selectedIds
+        : args.value;
+
     return (
       <StoryShell title="SelectBox" description="Single and multiple selection usage from filters, settings, top bars, and config forms.">
+        <Section title="Controlled SelectBox example" description="These controls map to SelectBox props.">
+          <SelectBox<any, any>
+            mode={args.mode}
+            label={args.label}
+            description={args.description || undefined}
+            helperText={args.error ? undefined : args.helperText || undefined}
+            placeholder={args.placeholder}
+            searchPlaceholder={args.searchPlaceholder}
+            emptyState={args.emptyState}
+            options={args.objectValues ? objectOptions : stringOptions}
+            value={resolvedValue}
+            defaultValue={args.defaultValue}
+            onChange={(nextValue) => {
+              const nextControlValue = Array.isArray(nextValue)
+                ? nextValue.map((item) => (typeof item === 'object' && item !== null && 'id' in item ? item.id : String(item))).join(',')
+                : typeof nextValue === 'object' && nextValue !== null && 'id' in nextValue
+                  ? nextValue.id
+                  : String(nextValue ?? '');
+              updateArgs({ value: nextControlValue });
+            }}
+            searchable={args.searchable}
+            clearable={args.clearable}
+            showSelectAll={args.showSelectAll}
+            showClear={args.showClear}
+            selectAllLabel={args.selectAllLabel}
+            clearLabel={args.clearLabel}
+            disabled={args.disabled}
+            labelPosition={args.labelPosition}
+            error={args.error || undefined}
+            endAdornment={args.endAdornment === 'none' ? undefined : <Icon name={args.endAdornment} className="h-4 w-4" />}
+            summaryText={args.summaryText || undefined}
+            menuHeader={args.menuHeader ? ({ filteredOptions }) => <Badge>{filteredOptions.length} visible</Badge> : undefined}
+            getOptionKey={args.customOptionKey && args.objectValues ? (optionValue: { id: string }) => optionValue.id : undefined}
+            isOptionEqual={args.customOptionEquality && args.objectValues ? (left: { id: string }, right: { id: string }) => left.id === right.id : undefined}
+            renderOption={args.customRenderOption ? (option, selected) => <span className={selected ? 'font-semibold text-white' : ''}>{option.label}</span> : undefined}
+            renderValue={
+              args.customRenderValue
+                ? (_value, selectedOptions) => (selectedOptions.length ? `${selectedOptions.length} selected from custom renderValue` : args.placeholder)
+                : undefined
+            }
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            wrapperClassName={args.wrapperClassName || undefined}
+            labelClassName={args.labelClassName || undefined}
+            descriptionClassName={args.descriptionClassName || undefined}
+            errorClassName={args.errorClassName || undefined}
+            helperClassName={args.helperClassName || undefined}
+            triggerClassName={args.triggerClassName || undefined}
+            menuClassName={args.menuClassName || undefined}
+            optionClassName={args.optionClassName || undefined}
+            searchClassName={args.searchClassName || undefined}
+            summaryClassName={args.summaryClassName || undefined}
+            endAdornmentClassName={args.endAdornmentClassName || undefined}
+          />
+        </Section>
         <Section title="SelectBox cases" description="Single, multi, search, disabled, error, custom summary, custom renderers, object values, adornments, and slot classes.">
           <CaseGrid cases={selectCases} />
         </Section>
@@ -613,10 +945,142 @@ export const SelectBoxComponent: Story = {
   },
 };
 
-export const FeedbackComponents: Story = {
-  render: function FeedbackComponentsStory() {
+interface FeedbackComponentArgs {
+  badgeTone: BadgeTone;
+  badgeLabel: string;
+  badgeAccentKey: string;
+  badgeClassName: string;
+  bannerTone: 'accent' | 'info' | 'success' | 'warning' | 'danger' | 'neutral';
+  bannerTitle: string;
+  bannerBody: string;
+  bannerActions: boolean;
+  bannerIcon: string;
+  bannerShowToneBadge: boolean;
+  bannerAccentKey: string;
+  bannerAccentColor: string;
+  bannerBackgroundColor: string;
+  bannerBorderColor: string;
+  bannerTextColor: string;
+  bannerClassName: string;
+  bannerContentClassName: string;
+  bannerTitleClassName: string;
+  bannerActionsClassName: string;
+  bannerAccentClassName: string;
+  cardPadded: false | 'none' | 'sm' | 'md' | 'lg';
+  cardInteractive: boolean;
+  cardAccentKey: string;
+  cardClassName: string;
+  cardContentClassName: string;
+}
+
+export const FeedbackComponents: StoryObj<FeedbackComponentArgs> = {
+  args: {
+    badgeTone: 'accent',
+    badgeLabel: 'Active',
+    badgeAccentKey: 'default',
+    badgeClassName: '',
+    bannerTone: 'warning',
+    bannerTitle: 'Review required',
+    bannerBody: 'Review the draft before saving.',
+    bannerActions: true,
+    bannerIcon: 'info',
+    bannerShowToneBadge: false,
+    bannerAccentKey: 'default',
+    bannerAccentColor: '',
+    bannerBackgroundColor: '',
+    bannerBorderColor: '',
+    bannerTextColor: '',
+    bannerClassName: '',
+    bannerContentClassName: '',
+    bannerTitleClassName: '',
+    bannerActionsClassName: '',
+    bannerAccentClassName: '',
+    cardPadded: 'md',
+    cardInteractive: true,
+    cardAccentKey: 'default',
+    cardClassName: '',
+    cardContentClassName: 'space-y-3',
+  },
+  argTypes: {
+    badgeTone: { name: 'Badge.tone', control: 'select', options: ['accent', 'success', 'warning', 'danger', 'neutral', 'info'], table: { category: 'Badge' } },
+    badgeLabel: { name: 'Badge.children', control: 'text', table: { category: 'Badge' } },
+    badgeAccentKey: { name: 'Badge.accentKey', control: 'select', options: accentOptions, table: { category: 'Badge' } },
+    badgeClassName: { name: 'Badge.className', control: 'text', table: { category: 'Badge classes' } },
+    bannerTone: { name: 'Banner.tone', control: 'select', options: ['accent', 'info', 'success', 'warning', 'danger', 'neutral'], table: { category: 'Banner' } },
+    bannerTitle: { name: 'Banner.title', control: 'text', table: { category: 'Banner' } },
+    bannerBody: { name: 'Banner.children', control: 'text', table: { category: 'Banner' } },
+    bannerActions: { name: 'Banner.actions', control: 'boolean', table: { category: 'Banner slots' } },
+    bannerIcon: { name: 'Banner.icon', control: 'select', options: iconOptions, table: { category: 'Banner slots' } },
+    bannerShowToneBadge: { name: 'Banner.showToneBadge', control: 'boolean', table: { category: 'Banner' } },
+    bannerAccentKey: { name: 'Banner.accentKey', control: 'select', options: accentOptions, table: { category: 'Banner' } },
+    bannerAccentColor: { name: 'Banner.accentColor', control: 'color', table: { category: 'Banner custom colors' } },
+    bannerBackgroundColor: { name: 'Banner.backgroundColor', control: 'color', table: { category: 'Banner custom colors' } },
+    bannerBorderColor: { name: 'Banner.borderColor', control: 'color', table: { category: 'Banner custom colors' } },
+    bannerTextColor: { name: 'Banner.textColor', control: 'color', table: { category: 'Banner custom colors' } },
+    bannerClassName: { name: 'Banner.className', control: 'text', table: { category: 'Banner classes' } },
+    bannerContentClassName: { name: 'Banner.contentClassName', control: 'text', table: { category: 'Banner classes' } },
+    bannerTitleClassName: { name: 'Banner.titleClassName', control: 'text', table: { category: 'Banner classes' } },
+    bannerActionsClassName: { name: 'Banner.actionsClassName', control: 'text', table: { category: 'Banner classes' } },
+    bannerAccentClassName: { name: 'Banner.accentClassName', control: 'text', table: { category: 'Banner classes' } },
+    cardPadded: { name: 'Card.padded', control: 'select', options: [false, 'none', 'sm', 'md', 'lg'], table: { category: 'Card' } },
+    cardInteractive: { name: 'Card.interactive', control: 'boolean', table: { category: 'Card' } },
+    cardAccentKey: { name: 'Card.accentKey', control: 'select', options: accentOptions, table: { category: 'Card' } },
+    cardClassName: { name: 'Card.className', control: 'text', table: { category: 'Card classes' } },
+    cardContentClassName: { name: 'Card.contentClassName', control: 'text', table: { category: 'Card classes' } },
+  },
+  parameters: docsSource(
+    `
+import { Badge, Banner, Card } from '@react/ui';
+import '@react/ui/styles.css';
+
+export function Example() {
+  return (
+    <Card padded="md" interactive>
+      <Badge tone="accent">Active</Badge>
+      <Banner tone="warning" title="Review required">
+        Review the draft before saving.
+      </Banner>
+    </Card>
+  );
+}
+`,
+    'Exact Badge, Banner, and Card composition code.',
+  ),
+  render: function FeedbackComponentsStory(args) {
     return (
       <StoryShell title="Badge, Banner, and Card" description="Feedback and surface components used in page headers, config notes, dashboard panels, and modal content.">
+        <Section title="Controlled feedback example" description="These controls map to Badge, Banner, and Card props.">
+          <Card
+            padded={args.cardPadded}
+            interactive={args.cardInteractive}
+            accentKey={args.cardAccentKey}
+            className={args.cardClassName || undefined}
+            contentClassName={args.cardContentClassName || undefined}
+          >
+            <Badge tone={args.badgeTone} accentKey={args.badgeAccentKey} className={args.badgeClassName || undefined}>
+              {args.badgeLabel}
+            </Badge>
+            <Banner
+              tone={args.bannerTone}
+              title={args.bannerTitle}
+              actions={args.bannerActions ? <Button size="sm">Review</Button> : undefined}
+              icon={args.bannerIcon === 'none' ? undefined : <Icon name={args.bannerIcon} className="h-4 w-4" />}
+              showToneBadge={args.bannerShowToneBadge}
+              accentKey={args.bannerAccentKey}
+              accentColor={args.bannerAccentColor || undefined}
+              backgroundColor={args.bannerBackgroundColor || undefined}
+              borderColor={args.bannerBorderColor || undefined}
+              textColor={args.bannerTextColor || undefined}
+              className={args.bannerClassName || undefined}
+              contentClassName={args.bannerContentClassName || undefined}
+              titleClassName={args.bannerTitleClassName || undefined}
+              actionsClassName={args.bannerActionsClassName || undefined}
+              accentClassName={args.bannerAccentClassName || undefined}
+            >
+              {args.bannerBody}
+            </Banner>
+          </Card>
+        </Section>
         <Section title="Feedback and surface cases" description="Badge tones, banners, custom colors, action slots, Card padding modes, interactive cards, and content slots.">
           <CaseGrid cases={feedbackCases} />
         </Section>
@@ -625,10 +1089,239 @@ export const FeedbackComponents: Story = {
   },
 };
 
-export const ChoiceComponents: Story = {
-  render: function ChoiceComponentsStory() {
+interface ChoiceComponentArgs {
+  chipTitle: string;
+  chipValue: string;
+  chipHelper: string;
+  chipTone: 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
+  chipSelected: boolean;
+  chipDisabled: boolean;
+  chipClickable: boolean;
+  chipLeading: string;
+  chipTrailing: string;
+  chipAccentKey: string;
+  radioTitle: string;
+  radioDescription: string;
+  radioHelper: string;
+  radioChecked: boolean;
+  radioName: string;
+  radioValue: string;
+  radioToggleable: boolean;
+  radioLeading: string;
+  radioTrailing: string;
+  radioAccentKey: string;
+  toggleTitle: string;
+  toggleDescription: string;
+  toggleHelper: string;
+  toggleChecked: boolean;
+  toggleLeading: string;
+  toggleTrailing: string;
+  toggleAccentKey: string;
+  switchLabel: string;
+  switchDescription: string;
+  switchChecked: boolean;
+  switchAccentKey: string;
+  disabled: boolean;
+  className: string;
+  contentClassName: string;
+  titleClassName: string;
+  valueClassName: string;
+  descriptionClassName: string;
+  helperClassName: string;
+  indicatorClassName: string;
+  switchTrackClassName: string;
+  switchThumbClassName: string;
+  switchLabelClassName: string;
+  switchDescriptionClassName: string;
+}
+
+export const ChoiceComponents: StoryObj<ChoiceComponentArgs> = {
+  args: {
+    chipTitle: 'Available',
+    chipValue: '$12,480.22',
+    chipHelper: 'Realtime balance',
+    chipTone: 'accent',
+    chipSelected: false,
+    chipDisabled: false,
+    chipClickable: false,
+    chipLeading: 'none',
+    chipTrailing: 'none',
+    chipAccentKey: 'default',
+    radioTitle: 'Recommended',
+    radioDescription: 'Selectable card state.',
+    radioHelper: '',
+    radioChecked: true,
+    radioName: '',
+    radioValue: 'recommended',
+    radioToggleable: false,
+    radioLeading: 'none',
+    radioTrailing: 'none',
+    radioAccentKey: 'default',
+    toggleTitle: 'Notify reviewers',
+    toggleDescription: 'Binary card state.',
+    toggleHelper: '',
+    toggleChecked: true,
+    toggleLeading: 'none',
+    toggleTrailing: 'none',
+    toggleAccentKey: 'default',
+    switchLabel: 'Sync enabled',
+    switchDescription: 'Inline binary control.',
+    switchChecked: true,
+    switchAccentKey: 'default',
+    disabled: false,
+    className: '',
+    contentClassName: '',
+    titleClassName: '',
+    valueClassName: '',
+    descriptionClassName: '',
+    helperClassName: '',
+    indicatorClassName: '',
+    switchTrackClassName: '',
+    switchThumbClassName: '',
+    switchLabelClassName: '',
+    switchDescriptionClassName: '',
+  },
+  argTypes: {
+    chipTitle: { name: 'ChipCard.title', control: 'text', table: { category: 'ChipCard' } },
+    chipValue: { name: 'ChipCard.value', control: 'text', table: { category: 'ChipCard' } },
+    chipHelper: { name: 'ChipCard.helper', control: 'text', table: { category: 'ChipCard' } },
+    chipTone: { name: 'ChipCard.tone', control: 'select', options: ['neutral', 'accent', 'success', 'warning', 'danger'], table: { category: 'ChipCard' } },
+    chipSelected: { name: 'ChipCard.selected', control: 'boolean', table: { category: 'ChipCard' } },
+    chipDisabled: { name: 'ChipCard.disabled', control: 'boolean', table: { category: 'ChipCard' } },
+    chipClickable: { name: 'ChipCard.onClick', control: 'boolean', table: { category: 'ChipCard' } },
+    chipLeading: { name: 'ChipCard.leading', control: 'select', options: iconOptions, table: { category: 'ChipCard slots' } },
+    chipTrailing: { name: 'ChipCard.trailing', control: 'select', options: iconOptions, table: { category: 'ChipCard slots' } },
+    chipAccentKey: { name: 'ChipCard.accentKey', control: 'select', options: accentOptions, table: { category: 'ChipCard' } },
+    radioTitle: { name: 'RadioCard.title', control: 'text', table: { category: 'RadioCard' } },
+    radioDescription: { name: 'RadioCard.description', control: 'text', table: { category: 'RadioCard' } },
+    radioHelper: { name: 'RadioCard.helper', control: 'text', table: { category: 'RadioCard' } },
+    radioChecked: { name: 'RadioCard.checked', control: 'boolean', table: { category: 'RadioCard' } },
+    radioName: { name: 'RadioCard.name', control: 'text', table: { category: 'RadioCard' } },
+    radioValue: { name: 'RadioCard.value', control: 'text', table: { category: 'RadioCard' } },
+    radioToggleable: { name: 'RadioCard.toggleable', control: 'boolean', table: { category: 'RadioCard' } },
+    radioLeading: { name: 'RadioCard.leading', control: 'select', options: iconOptions, table: { category: 'RadioCard slots' } },
+    radioTrailing: { name: 'RadioCard.trailing', control: 'select', options: iconOptions, table: { category: 'RadioCard slots' } },
+    radioAccentKey: { name: 'RadioCard.accentKey', control: 'select', options: accentOptions, table: { category: 'RadioCard' } },
+    toggleTitle: { name: 'ToggleCard.title', control: 'text', table: { category: 'ToggleCard' } },
+    toggleDescription: { name: 'ToggleCard.description', control: 'text', table: { category: 'ToggleCard' } },
+    toggleHelper: { name: 'ToggleCard.helper', control: 'text', table: { category: 'ToggleCard' } },
+    toggleChecked: { name: 'ToggleCard.checked', control: 'boolean', table: { category: 'ToggleCard' } },
+    toggleLeading: { name: 'ToggleCard.leading', control: 'select', options: iconOptions, table: { category: 'ToggleCard slots' } },
+    toggleTrailing: { name: 'ToggleCard.trailing', control: 'select', options: iconOptions, table: { category: 'ToggleCard slots' } },
+    toggleAccentKey: { name: 'ToggleCard.accentKey', control: 'select', options: accentOptions, table: { category: 'ToggleCard' } },
+    switchLabel: { name: 'Switch.label', control: 'text', table: { category: 'Switch' } },
+    switchDescription: { name: 'Switch.description', control: 'text', table: { category: 'Switch' } },
+    switchChecked: { name: 'Switch.checked', control: 'boolean', table: { category: 'Switch' } },
+    switchAccentKey: { name: 'Switch.accentKey', control: 'select', options: accentOptions, table: { category: 'Switch' } },
+    disabled: { control: 'boolean', table: { category: 'Choice controls' } },
+    className: { control: 'text', table: { category: 'Shared classes' } },
+    contentClassName: { control: 'text', table: { category: 'Shared classes' } },
+    titleClassName: { control: 'text', table: { category: 'Shared classes' } },
+    valueClassName: { name: 'ChipCard.valueClassName', control: 'text', table: { category: 'ChipCard classes' } },
+    descriptionClassName: { control: 'text', table: { category: 'Shared classes' } },
+    helperClassName: { control: 'text', table: { category: 'Shared classes' } },
+    indicatorClassName: { name: 'RadioCard.indicatorClassName', control: 'text', table: { category: 'RadioCard classes' } },
+    switchTrackClassName: { name: 'Switch.trackClassName', control: 'text', table: { category: 'Switch classes' } },
+    switchThumbClassName: { name: 'Switch.thumbClassName', control: 'text', table: { category: 'Switch classes' } },
+    switchLabelClassName: { name: 'Switch.labelClassName', control: 'text', table: { category: 'Switch classes' } },
+    switchDescriptionClassName: { name: 'Switch.descriptionClassName', control: 'text', table: { category: 'Switch classes' } },
+  },
+  parameters: docsSource(
+    `
+import { ChipCard, RadioCard, Switch, ToggleCard } from '@react/ui';
+import '@react/ui/styles.css';
+
+export function Example() {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <ChipCard title="Available" value="$12,480.22" helper="Realtime balance" />
+      <RadioCard title="Recommended" description="Selectable card with radio semantics." defaultChecked />
+      <ToggleCard title="Notify reviewers" description="Binary card setting." defaultChecked />
+      <Switch label="Sync enabled" description="Inline binary control." defaultChecked />
+    </div>
+  );
+}
+`,
+    'Exact card choice and switch composition code.',
+  ),
+  render: function ChoiceComponentsStory(args) {
+    const updateArgs = useStoryArgsUpdater<ChoiceComponentArgs>();
+
     return (
       <StoryShell title="ChipCard, RadioCard, ToggleCard, and Switch" description="Card-like choices and inline binary controls.">
+        <Section title="Controlled choice example" description="These controls map to ChipCard, RadioCard, ToggleCard, and Switch props.">
+          <div className="grid gap-3 md:grid-cols-2">
+            <ChipCard
+              title={args.chipTitle}
+              value={args.chipValue}
+              helper={args.chipHelper}
+              tone={args.chipTone}
+              selected={args.chipSelected}
+              disabled={args.disabled || args.chipDisabled}
+              onClick={args.chipClickable ? () => updateArgs({ chipSelected: !args.chipSelected }) : undefined}
+              leading={args.chipLeading === 'none' ? undefined : <Icon name={args.chipLeading} className="h-4 w-4" />}
+              trailing={args.chipTrailing === 'none' ? undefined : <Icon name={args.chipTrailing} className="h-4 w-4" />}
+              accentKey={args.chipAccentKey}
+              className={args.className || undefined}
+              contentClassName={args.contentClassName || undefined}
+              titleClassName={args.titleClassName || undefined}
+              valueClassName={args.valueClassName || undefined}
+              helperClassName={args.helperClassName || undefined}
+            />
+            <RadioCard
+              title={args.radioTitle}
+              description={args.radioDescription}
+              helper={args.radioHelper || undefined}
+              checked={args.radioChecked}
+              defaultChecked={args.radioChecked}
+              onCheckedChange={(checked) => updateArgs({ radioChecked: checked })}
+              name={args.radioName || undefined}
+              value={args.radioValue}
+              toggleable={args.radioToggleable}
+              disabled={args.disabled}
+              leading={args.radioLeading === 'none' ? undefined : <Icon name={args.radioLeading} className="h-4 w-4" />}
+              trailing={args.radioTrailing === 'none' ? undefined : <Icon name={args.radioTrailing} className="h-4 w-4" />}
+              accentKey={args.radioAccentKey}
+              className={args.className || undefined}
+              contentClassName={args.contentClassName || undefined}
+              titleClassName={args.titleClassName || undefined}
+              descriptionClassName={args.descriptionClassName || undefined}
+              helperClassName={args.helperClassName || undefined}
+              indicatorClassName={args.indicatorClassName || undefined}
+            />
+            <ToggleCard
+              title={args.toggleTitle}
+              description={args.toggleDescription}
+              helper={args.toggleHelper || undefined}
+              checked={args.toggleChecked}
+              defaultChecked={args.toggleChecked}
+              onCheckedChange={(checked) => updateArgs({ toggleChecked: checked })}
+              disabled={args.disabled}
+              leading={args.toggleLeading === 'none' ? undefined : <Icon name={args.toggleLeading} className="h-4 w-4" />}
+              trailing={args.toggleTrailing === 'none' ? undefined : <Icon name={args.toggleTrailing} className="h-4 w-4" />}
+              accentKey={args.toggleAccentKey}
+              className={args.className || undefined}
+              contentClassName={args.contentClassName || undefined}
+              titleClassName={args.titleClassName || undefined}
+              descriptionClassName={args.descriptionClassName || undefined}
+              helperClassName={args.helperClassName || undefined}
+            />
+            <Switch
+              label={args.switchLabel}
+              description={args.switchDescription}
+              checked={args.switchChecked}
+              defaultChecked={args.switchChecked}
+              onCheckedChange={(checked) => updateArgs({ switchChecked: checked })}
+              disabled={args.disabled}
+              accentKey={args.switchAccentKey}
+              className={args.className || undefined}
+              trackClassName={args.switchTrackClassName || undefined}
+              thumbClassName={args.switchThumbClassName || undefined}
+              labelClassName={args.switchLabelClassName || args.titleClassName || undefined}
+              descriptionClassName={args.switchDescriptionClassName || args.descriptionClassName || undefined}
+            />
+          </div>
+        </Section>
         <Section title="Choice cases" description="Metric cards, selectable cards, card tones, radio cards, toggle cards, switches, slots, disabled, and compact states.">
           <CaseGrid cases={choiceCardCases} />
         </Section>
@@ -637,10 +1330,83 @@ export const ChoiceComponents: Story = {
   },
 };
 
-export const TooltipAndIconComponents: Story = {
-  render: function TooltipAndIconComponentsStory() {
+interface TooltipIconArgs {
+  iconName: string;
+  iconTitle: string;
+  iconClassName: string;
+  content: string;
+  placement: 'top' | 'right' | 'bottom' | 'left';
+  open: boolean;
+  defaultOpen: boolean;
+  delay: number;
+  accentKey: string;
+  className: string;
+  panelClassName: string;
+}
+
+export const TooltipAndIconComponents: StoryObj<TooltipIconArgs> = {
+  args: {
+    iconName: 'refresh',
+    iconTitle: '',
+    iconClassName: 'h-4 w-4',
+    content: 'Refresh data',
+    placement: 'top',
+    open: false,
+    defaultOpen: false,
+    delay: 120,
+    accentKey: 'default',
+    className: '',
+    panelClassName: '',
+  },
+  argTypes: {
+    iconName: { name: 'Icon.name', control: 'select', options: iconOptions.filter((name) => name !== 'none'), table: { category: 'Icon' } },
+    iconTitle: { name: 'Icon.title', control: 'text', table: { category: 'Icon' } },
+    iconClassName: { name: 'Icon.className', control: 'text', table: { category: 'Icon classes' } },
+    content: { name: 'Tooltip.content', control: 'text', table: { category: 'Tooltip' } },
+    placement: { name: 'Tooltip.placement', control: 'select', options: ['top', 'right', 'bottom', 'left'], table: { category: 'Tooltip' } },
+    open: { name: 'Tooltip.open', control: 'boolean', table: { category: 'Tooltip' } },
+    defaultOpen: { name: 'Tooltip.defaultOpen', control: 'boolean', table: { category: 'Tooltip' } },
+    delay: { name: 'Tooltip.delay', control: 'number', table: { category: 'Tooltip' } },
+    accentKey: { name: 'Tooltip.accentKey', control: 'select', options: accentOptions, table: { category: 'Tooltip' } },
+    className: { name: 'Tooltip.className', control: 'text', table: { category: 'Tooltip classes' } },
+    panelClassName: { name: 'Tooltip.panelClassName', control: 'text', table: { category: 'Tooltip classes' } },
+  },
+  parameters: docsSource(
+    `
+import { Button, Icon, Tooltip } from '@react/ui';
+import '@react/ui/styles.css';
+
+export function Example() {
+  return (
+    <Tooltip content="Refresh data" placement="top">
+      <Button variant="icon" className="h-9 w-9 px-0" aria-label="Refresh">
+        <Icon name="refresh" className="h-4 w-4" />
+      </Button>
+    </Tooltip>
+  );
+}
+`,
+    'Exact Tooltip and Icon composition code.',
+  ),
+  render: function TooltipAndIconComponentsStory(args) {
     return (
       <StoryShell title="Tooltip and Icon" description="Generic package chrome: tooltips and reusable icons. App-specific logos stay in the consuming app.">
+        <Section title="Controlled tooltip and icon example" description="These controls map to Tooltip and Icon props.">
+          <Tooltip
+            content={args.content}
+            placement={args.placement}
+            open={args.open || undefined}
+            defaultOpen={args.defaultOpen}
+            delay={args.delay}
+            accentKey={args.accentKey}
+            className={args.className || undefined}
+            panelClassName={args.panelClassName || undefined}
+          >
+            <Button variant="icon" className="h-9 w-9 px-0" aria-label={args.content}>
+              <Icon name={args.iconName} title={args.iconTitle || undefined} className={args.iconClassName || undefined} />
+            </Button>
+          </Tooltip>
+        </Section>
         <Section title="Tooltip and icon cases" description="Placement, disabled tooltips, and common icon names.">
           <CaseGrid cases={tooltipIconCases} />
         </Section>

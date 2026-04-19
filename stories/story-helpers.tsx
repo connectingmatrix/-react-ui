@@ -74,7 +74,7 @@ export function CaseCard({ storyCase }: { storyCase: StoryCase }) {
           </div>
           <p className="mt-1 text-sm leading-6 text-[var(--rui-text-secondary)]">{storyCase.description}</p>
         </div>
-        <div className="rounded-[10px] border border-white/8 bg-black/10 p-3">{storyCase.render}</div>
+        <div className="rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] p-3">{storyCase.render}</div>
       </Card>
     </AccentProvider>
   );
@@ -84,7 +84,7 @@ export function Section({ title, description, children }: { title: string; descr
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
+        <h2 className="text-xl font-semibold text-[var(--rui-text-primary)]">{title}</h2>
         <p className="mt-1 text-sm leading-6 text-[var(--rui-text-secondary)]">{description}</p>
       </div>
       {children}

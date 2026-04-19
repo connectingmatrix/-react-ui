@@ -9,6 +9,7 @@ export interface TableSortState {
 }
 export interface TableState {
     visibleColumnIds: string[];
+    columnOrder: string[];
     columnWidths: Record<string, number>;
     sort: TableSortState | null;
     filters: Record<string, unknown>;
@@ -133,6 +134,8 @@ export interface TableProps<Row = unknown> {
         clearSelection: () => void;
     }) => React.ReactNode;
     hideColumnControls?: boolean;
+    allowColumnResize?: boolean;
+    allowColumnReorder?: boolean;
     searchable?: boolean;
     searchPlaceholder?: string;
     globalSearchFn?: (row: Row, query: string) => boolean;
@@ -151,6 +154,6 @@ export interface TableProps<Row = unknown> {
     className?: string;
     classNames?: TableClassNames;
 }
-export declare function Table<Row>({ rows, columns, rowKey, tableId, scopeId, persistence, state: controlledState, defaultState: defaultStateOverride, onStateChange, selection, virtualization, loading, emptyMessage, loadingContent, toolbarContent, renderToolbar, headerFilters, renderHeaderFilters, renderSelectionActions, hideColumnControls, searchable, searchPlaceholder, globalSearchFn, sortRows, renderExpandedContent, expandedRowIds, defaultExpandedRowIds, onExpandedChange, onRowExpand, rowClassName, detailRowClassName, containerClassName, tableClassName, accentKey, style, className, classNames, }: TableProps<Row>): import("react/jsx-runtime").JSX.Element;
+export declare function Table<Row>({ rows, columns, rowKey, tableId, scopeId, persistence, state: controlledState, defaultState: defaultStateOverride, onStateChange, selection, virtualization, loading, emptyMessage, loadingContent, toolbarContent, renderToolbar, headerFilters, renderHeaderFilters, renderSelectionActions, hideColumnControls, allowColumnResize, allowColumnReorder, searchable, searchPlaceholder, globalSearchFn, sortRows, renderExpandedContent, expandedRowIds, defaultExpandedRowIds, onExpandedChange, onRowExpand, rowClassName, detailRowClassName, containerClassName, tableClassName, accentKey, style, className, classNames, }: TableProps<Row>): import("react/jsx-runtime").JSX.Element;
 export default Table;
 //# sourceMappingURL=Table.d.ts.map

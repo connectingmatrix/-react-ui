@@ -18,6 +18,7 @@ export interface TableSortState {
 
 export interface TableState {
   visibleColumnIds: string[];
+  columnOrder: string[];
   columnWidths: Record<string, number>;
   sort: TableSortState | null;
   filters: Record<string, unknown>;
@@ -129,6 +130,8 @@ export interface TableProps<Row = unknown> {
   renderHeaderFilters?: (params: TableHeaderFiltersParams<Row>) => React.ReactNode;
   renderSelectionActions?: (params: { selectedKeys: string[]; selectedRows: Row[]; clearSelection: () => void }) => React.ReactNode;
   hideColumnControls?: boolean;
+  allowColumnResize?: boolean;
+  allowColumnReorder?: boolean;
   searchable?: boolean;
   searchPlaceholder?: string;
   globalSearchFn?: (row: Row, query: string) => boolean;
@@ -321,6 +324,7 @@ function rowMatchesFilter<Row>(row: Row, column: TableColumn<Row>, filterValue: 
 function defaultState<Row>(columns: TableColumn<Row>[], defaultOverrides?: Partial<TableState>): TableState {
   return {
     visibleColumnIds: columns.filter((column) => isColumnVisibleByDefault(column)).map((column) => column.id),
+    columnOrder: columns.map((column) => column.id),
     columnWidths: Object.fromEntries(columns.filter((column) => Number(column.width) > 0).map((column) => [column.id, Number(column.width)])),
     sort: null,
     filters: {},
@@ -334,6 +338,9 @@ function defaultState<Row>(columns: TableColumn<Row>[], defaultOverrides?: Parti
 function normalizeState<Row>(raw: Partial<TableState> | null | undefined, columns: TableColumn<Row>[], defaultOverrides?: Partial<TableState>): TableState {
   const defaults = defaultState(columns, defaultOverrides);
   const columnMap = new Map(columns.map((column) => [column.id, column]));
+  const requestedOrder = Array.isArray(raw?.columnOrder) ? raw.columnOrder.map(String).filter((id) => columnMap.has(id)) : defaults.columnOrder;
+  const orderedColumnIds = [...requestedOrder, ...columns.map((column) => column.id).filter((id) => !requestedOrder.includes(id))];
+  const orderedColumns = orderedColumnIds.map((id) => columnMap.get(id)).filter(Boolean) as TableColumn<Row>[];
   const fixedVisible = columns.filter((column) => !isColumnHideable(column)).map((column) => column.id);
   const requestedVisible = Array.isArray(raw?.visibleColumnIds) ? raw.visibleColumnIds.filter((id) => columnMap.has(id)) : defaults.visibleColumnIds;
   const visibleSet = new Set<string>([...requestedVisible, ...fixedVisible]);
@@ -359,7 +366,8 @@ function normalizeState<Row>(raw: Partial<TableState> | null | undefined, column
   );
 
   return {
-    visibleColumnIds: columns.filter((column) => visibleSet.has(column.id)).map((column) => column.id),
+    visibleColumnIds: orderedColumns.filter((column) => visibleSet.has(column.id)).map((column) => column.id),
+    columnOrder: orderedColumnIds,
     columnWidths: {
       ...defaults.columnWidths,
       ...Object.fromEntries(
@@ -429,6 +437,17 @@ function nextSortState(current: TableSortState | null, columnId: string): TableS
   return null;
 }
 
+function reorderColumnIds(currentOrder: string[], activeColumnId: string, overColumnId: string) {
+  if (activeColumnId === overColumnId) return currentOrder;
+  const activeIndex = currentOrder.indexOf(activeColumnId);
+  const overIndex = currentOrder.indexOf(overColumnId);
+  if (activeIndex < 0 || overIndex < 0) return currentOrder;
+  const nextOrder = [...currentOrder];
+  const [active] = nextOrder.splice(activeIndex, 1);
+  nextOrder.splice(overIndex, 0, active);
+  return nextOrder;
+}
+
 function defaultEnumOptions<Row>(rows: Row[], column: TableColumn<Row>) {
   const values = new Set<string>();
   rows.forEach((row) => {
@@ -462,6 +481,52 @@ function shallowStateMerge(state: TableState, partial?: Partial<TableState>) {
   return partial ? { ...state, ...partial } : state;
 }
 
+function removeDragPreview(preview: HTMLElement | null) {
+  preview?.parentNode?.removeChild(preview);
+}
+
+function createColumnDragPreview(container: HTMLElement | null, columnIndex: number) {
+  const table = container?.querySelector('table');
+  const headerCell = table?.querySelector(`thead tr:last-child th:nth-child(${columnIndex})`) as HTMLElement | null;
+  if (!headerCell || typeof document === 'undefined') return null;
+
+  const bodyCells = Array.from(table?.querySelectorAll(`tbody tr:not([data-rui-detail-row="true"]) td:nth-child(${columnIndex})`) || []).slice(0, 7) as HTMLElement[];
+  const width = Math.max(140, Math.min(headerCell.getBoundingClientRect().width || 180, 340));
+  const preview = document.createElement('div');
+  preview.style.position = 'fixed';
+  preview.style.left = '-10000px';
+  preview.style.top = '-10000px';
+  preview.style.width = `${width}px`;
+  preview.style.pointerEvents = 'none';
+  preview.style.zIndex = '2147483647';
+  preview.style.overflow = 'hidden';
+  preview.style.border = '1px solid var(--rui-accent-border-soft)';
+  preview.style.borderRadius = '10px';
+  preview.style.background = 'var(--rui-bg-panel)';
+  preview.style.boxShadow = '0 18px 45px rgba(6, 9, 35, 0.35)';
+  preview.style.color = 'var(--rui-text-primary)';
+
+  const addCell = (cell: HTMLElement, isHeader = false) => {
+    const clone = cell.cloneNode(true) as HTMLElement;
+    clone.removeAttribute('draggable');
+    clone.style.display = 'block';
+    clone.style.width = '100%';
+    clone.style.boxSizing = 'border-box';
+    clone.style.borderBottom = '1px solid var(--rui-border-soft)';
+    clone.style.background = isHeader ? 'var(--rui-bg-panel)' : 'var(--rui-bg-panel-2)';
+    clone.style.padding = isHeader ? '12px' : '10px 12px';
+    clone.style.fontSize = isHeader ? '12px' : '13px';
+    clone.style.color = isHeader ? 'var(--rui-text-secondary)' : 'var(--rui-text-primary)';
+    clone.style.opacity = '1';
+    preview.appendChild(clone);
+  };
+
+  addCell(headerCell, true);
+  bodyCells.forEach((cell) => addCell(cell));
+  document.body.appendChild(preview);
+  return preview;
+}
+
 export function Table<Row>({
   rows,
   columns,
@@ -483,6 +548,8 @@ export function Table<Row>({
   renderHeaderFilters,
   renderSelectionActions,
   hideColumnControls = false,
+  allowColumnResize = true,
+  allowColumnReorder = true,
   searchable = false,
   searchPlaceholder = 'Search rows',
   globalSearchFn,
@@ -506,12 +573,20 @@ export function Table<Row>({
   const columnsButtonRef = useRef<HTMLDivElement | null>(null);
   const filtersMenuRef = useRef<HTMLDivElement | null>(null);
   const columnsMenuRef = useRef<HTMLDivElement | null>(null);
-  const resizeStateRef = useRef<{ columnId: string; startX: number; startWidth: number } | null>(null);
+  const tableContainerRef = useRef<HTMLDivElement | null>(null);
+  const resizeStateRef = useRef<{ columnId: string; startX: number; startWidth: number; nextWidth: number } | null>(null);
+  const resizeFrameRef = useRef<number | null>(null);
+  const dragPreviewRef = useRef<HTMLElement | null>(null);
+  const draggingColumnIdRef = useRef<string | null>(null);
+  const [draggingColumnId, setDraggingColumnId] = useState<string | null>(null);
+  const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
   const [filtersMenuOpen, setFiltersMenuOpen] = useState(false);
   const [columnsMenuOpen, setColumnsMenuOpen] = useState(false);
   const [filtersMenuPosition, setFiltersMenuPosition] = useState<FloatingMenuPosition | null>(null);
   const [columnsMenuPosition, setColumnsMenuPosition] = useState<FloatingMenuPosition | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [tableContainerWidth, setTableContainerWidth] = useState(0);
+  const [liveColumnWidths, setLiveColumnWidths] = useState<Record<string, number>>({});
   const [scrollTop, setScrollTop] = useState(0);
   const persistenceKey = getPersistenceKey(persistence, tableId, scopeId);
   const persistenceDisabled = persistence === false;
@@ -578,6 +653,29 @@ export function Table<Row>({
   }, [onStateChange]);
 
   useEffect(() => {
+    const node = tableContainerRef.current;
+    if (!node || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => {
+      const nextWidth = Math.round(entry.contentRect.width);
+      setTableContainerWidth((current) => (Math.abs(current - nextWidth) > 1 ? nextWidth : current));
+    });
+    observer.observe(node);
+    setTableContainerWidth(node.clientWidth);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (resizeFrameRef.current != null) window.cancelAnimationFrame(resizeFrameRef.current);
+      draggingColumnIdRef.current = null;
+      removeDragPreview(dragPreviewRef.current);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    },
+    [],
+  );
+
+  useEffect(() => {
     let cancelled = false;
     if (!persistenceKey || !persistenceAdapter) {
       setAdapterHydrated(true);
@@ -614,22 +712,29 @@ export function Table<Row>({
     writeLocalState(persistenceKey, mergedState, persistenceStorage);
   }, [adapterHydrated, mergedState, persistenceAdapter, persistenceDisabled, persistenceKey, persistenceStorage]);
 
+  const orderedColumns = useMemo(() => {
+    const columnMap = new Map(columns.map((column) => [column.id, column]));
+    return [...mergedState.columnOrder, ...columns.map((column) => column.id).filter((id) => !mergedState.columnOrder.includes(id))]
+      .map((id) => columnMap.get(id))
+      .filter(Boolean) as TableColumn<Row>[];
+  }, [columns, mergedState.columnOrder]);
+
   const visibleColumns = useMemo(
     () =>
-      columns.filter((column) => {
+      orderedColumns.filter((column) => {
         if (isActionColumn(column) || column.hideable === false) return true;
         return mergedState.visibleColumnIds.includes(column.id);
       }),
-    [columns, mergedState.visibleColumnIds],
+    [mergedState.visibleColumnIds, orderedColumns],
   );
 
   const hiddenDetailColumns = useMemo(
     () =>
-      columns.filter((column) => {
+      orderedColumns.filter((column) => {
         if (isActionColumn(column) || column.hideable === false) return false;
         return !visibleColumns.some((visibleColumn) => visibleColumn.id === column.id);
       }),
-    [columns, visibleColumns],
+    [orderedColumns, visibleColumns],
   );
 
   const setFilter = useCallback(
@@ -671,6 +776,13 @@ export function Table<Row>({
     [setTableState],
   );
 
+  const moveColumn = useCallback(
+    (activeColumnId: string, overColumnId: string) => {
+      setTableState((current) => ({ ...current, columnOrder: reorderColumnIds(current.columnOrder, activeColumnId, overColumnId) }));
+    },
+    [setTableState],
+  );
+
   const resetState = useCallback(() => {
     setTableState(defaultState(columns, { ...defaultStateOverride, expandedRowIds: defaultExpandedRowIds || [], selectedRowIds: selection?.defaultSelectedKeys || [] }));
   }, [columns, defaultExpandedRowIds, defaultStateOverride, selection?.defaultSelectedKeys, setTableState]);
@@ -684,11 +796,32 @@ export function Table<Row>({
       const minWidth = Math.max(column.minWidth || 96, 56);
       const maxWidth = column.maxWidth || 720;
       const nextWidth = Math.min(maxWidth, Math.max(minWidth, activeResize.startWidth + (event.clientX - activeResize.startX)));
-      setColumnWidth(activeResize.columnId, nextWidth);
+      activeResize.nextWidth = nextWidth;
+      if (resizeFrameRef.current != null) return;
+      resizeFrameRef.current = window.requestAnimationFrame(() => {
+        resizeFrameRef.current = null;
+        const latestResize = resizeStateRef.current;
+        if (!latestResize) return;
+        setLiveColumnWidths((current) => ({ ...current, [latestResize.columnId]: latestResize.nextWidth }));
+      });
     };
 
     const handlePointerUp = () => {
+      const activeResize = resizeStateRef.current;
+      if (!activeResize) return;
+      if (resizeFrameRef.current != null) {
+        window.cancelAnimationFrame(resizeFrameRef.current);
+        resizeFrameRef.current = null;
+      }
       resizeStateRef.current = null;
+      setColumnWidth(activeResize.columnId, activeResize.nextWidth);
+      setLiveColumnWidths((current) => {
+        if (!(activeResize.columnId in current)) return current;
+        const { [activeResize.columnId]: _removed, ...rest } = current;
+        return rest;
+      });
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
 
     window.addEventListener('mousemove', handlePointerMove);
@@ -831,14 +964,27 @@ export function Table<Row>({
     onRowExpand?.(row, expanded);
   };
 
-  const visibleHideableColumns = columns.filter((column) => !isActionColumn(column) && column.hideable !== false);
+  const visibleHideableColumns = orderedColumns.filter((column) => !isActionColumn(column) && column.hideable !== false);
   const filterableVisibleColumns = visibleColumns.filter((column) => !isActionColumn(column) && column.filterable !== false);
   const activeFilterCount = filterableVisibleColumns.filter((column) => isFilterActive(column.kind || 'text', mergedState.filters[column.id])).length;
 
-  const totalWidth = useMemo(() => {
-    const baseWidth = visibleColumns.reduce((sum, column) => sum + Number(mergedState.columnWidths[column.id] || column.width || column.minWidth || 160), 0);
-    return baseWidth + (hasRowDetails ? 56 : 0) + (selectionMode ? 52 : 0);
-  }, [hasRowDetails, mergedState.columnWidths, selectionMode, visibleColumns]);
+  const columnBaseWidths = useMemo(
+    () =>
+      Object.fromEntries(
+        visibleColumns.map((column) => [column.id, Number(liveColumnWidths[column.id] || mergedState.columnWidths[column.id] || column.width || column.minWidth || 160)]),
+      ),
+    [liveColumnWidths, mergedState.columnWidths, visibleColumns],
+  );
+
+  const controlWidth = (hasRowDetails ? 56 : 0) + (selectionMode ? 72 : 0);
+  const baseDataWidth = visibleColumns.reduce((sum, column) => sum + columnBaseWidths[column.id], 0);
+
+  const tableMetrics = useMemo(() => {
+    const minimumWidth = Math.max(controlWidth + baseDataWidth, 720);
+    const tableWidth = Math.max(minimumWidth, tableContainerWidth || 0);
+    const fillerWidth = Math.max(0, tableWidth - controlWidth - baseDataWidth);
+    return { tableWidth, fillerWidth, columnWidths: columnBaseWidths };
+  }, [baseDataWidth, columnBaseWidths, controlWidth, tableContainerWidth]);
 
   const virtualEnabled = Boolean(virtualization?.enabled && !hasRowDetails);
   const rowHeight = virtualization?.rowHeight || 48;
@@ -849,6 +995,8 @@ export function Table<Row>({
   const renderedRows = virtualEnabled ? sortedFilteredRows.slice(startIndex, startIndex + visibleCount) : sortedFilteredRows;
   const topSpacerHeight = virtualEnabled ? startIndex * rowHeight : 0;
   const bottomSpacerHeight = virtualEnabled ? Math.max(0, (sortedFilteredRows.length - startIndex - renderedRows.length) * rowHeight) : 0;
+  const hasFillerColumn = tableMetrics.fillerWidth > 1;
+  const tableColumnCount = visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0) + (hasFillerColumn ? 1 : 0);
 
   const renderFilterEditor = (column: TableColumn<Row>) => {
     if (column.renderFilter) {
@@ -948,15 +1096,24 @@ export function Table<Row>({
   const selectionActions = selectedKeys.length ? renderSelectionActions?.({ selectedKeys, selectedRows, clearSelection }) : null;
 
   const hasColumnGroups = visibleColumns.some((column) => column.groupId || column.groupLabel);
+  const finishColumnDrag = () => {
+    draggingColumnIdRef.current = null;
+    setDraggingColumnId(null);
+    setDragOverColumnId(null);
+    removeDragPreview(dragPreviewRef.current);
+    dragPreviewRef.current = null;
+  };
+
   const groupedHeader = hasColumnGroups ? (
     <tr className="sticky top-0 z-30 border-b border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] text-[var(--rui-text-secondary)]">
-      {selectionMode ? <th className="w-[52px] px-3 py-2" rowSpan={2} /> : null}
       {hasRowDetails ? <th className="w-14 px-3 py-2" rowSpan={2} /> : null}
+      {selectionMode ? <th className="w-[72px] px-3 py-2" rowSpan={2} /> : null}
       {visibleColumns.map((column) => (
         <th key={column.id} className="px-3 py-2 text-left text-xs font-medium uppercase tracking-[0.14em]">
           {column.groupLabel || column.groupId || ''}
         </th>
       ))}
+      {hasFillerColumn ? <th className="px-3 py-2" rowSpan={2} aria-hidden="true" /> : null}
     </tr>
   ) : null;
 
@@ -1013,7 +1170,9 @@ export function Table<Row>({
       ) : null}
 
       {headerFilters || renderHeaderFilters ? (
-        <div className={cn('mb-3 flex flex-wrap items-center gap-2 rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] p-3', classNames?.headerFilters)}>
+        <div
+          className={cn('mb-3 flex flex-wrap items-center gap-2 rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] p-3', classNames?.headerFilters)}
+        >
           {headerFilters}
           {renderHeaderFilters?.({
             state: mergedState,
@@ -1071,7 +1230,10 @@ export function Table<Row>({
         ? createPortal(
             <div
               ref={columnsMenuRef}
-              className={cn('rui-theme fixed z-[130] w-[260px] rounded-[10px] border border-solid border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] p-3 shadow-panel', classNames?.menu)}
+              className={cn(
+                'rui-theme fixed z-[130] w-[260px] rounded-[10px] border border-solid border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] p-3 shadow-panel',
+                classNames?.menu,
+              )}
               style={{ left: columnsMenuPosition.left, top: columnsMenuPosition.top, maxHeight: columnsMenuPosition.maxHeight }}
             >
               <div className="mb-2 text-xs uppercase tracking-[0.14em] text-[var(--rui-text-tertiary)]">Visible columns</div>
@@ -1098,7 +1260,7 @@ export function Table<Row>({
                             if (currentlyVisible) delete filters[column.id];
                             return {
                               ...current,
-                              visibleColumnIds: columns.filter((item) => visibleSet.has(item.id) || !isColumnHideable(item)).map((item) => item.id),
+                              visibleColumnIds: orderedColumns.filter((item) => visibleSet.has(item.id) || !isColumnHideable(item)).map((item) => item.id),
                               filters,
                               sort: current.sort?.columnId === column.id && currentlyVisible ? null : current.sort,
                             };
@@ -1117,25 +1279,38 @@ export function Table<Row>({
         : null}
 
       <div
-        className={cn('min-h-0 w-full flex-1 overflow-auto rounded-[10px] border border-[var(--rui-border-soft)]', containerClassName, classNames?.container)}
+        ref={tableContainerRef}
+        className={cn(
+          'min-h-0 w-full flex-1 overflow-auto rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)]',
+          containerClassName,
+          classNames?.container,
+        )}
         style={{ scrollbarGutter: 'stable both-edges', maxHeight: virtualEnabled ? maxHeight : undefined }}
         onScroll={(event) => {
           if (virtualEnabled) setScrollTop(event.currentTarget.scrollTop);
         }}
       >
-        <table className={cn('w-full table-fixed text-left text-sm', tableClassName, classNames?.table)} style={{ minWidth: `${Math.max(totalWidth, 720)}px` }}>
+        <table className={cn('table-fixed text-left text-sm', tableClassName, classNames?.table)} style={{ width: `${tableMetrics.tableWidth}px` }}>
           <colgroup>
-            {selectionMode ? <col style={{ width: 52 }} /> : null}
             {hasRowDetails ? <col style={{ width: 56 }} /> : null}
+            {selectionMode ? <col style={{ width: 72 }} /> : null}
             {visibleColumns.map((column) => (
-              <col key={column.id} style={{ width: mergedState.columnWidths[column.id] || column.width || column.minWidth || 160 }} />
+              <col key={column.id} style={{ width: tableMetrics.columnWidths[column.id] || columnBaseWidths[column.id] || 160 }} />
             ))}
+            {hasFillerColumn ? <col style={{ width: tableMetrics.fillerWidth }} /> : null}
           </colgroup>
           <thead>
             {groupedHeader}
-            <tr className={cn('sticky top-0 z-20 border-b border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] text-[var(--rui-text-secondary)]', hasColumnGroups && 'top-[37px]', classNames?.headerRow)}>
-              {selectionMode ? (
-                <th className="w-[52px] px-3 py-3 font-medium">
+            <tr
+              className={cn(
+                'sticky top-0 z-20 border-b border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] text-[var(--rui-text-secondary)]',
+                hasColumnGroups && 'top-[37px]',
+                classNames?.headerRow,
+              )}
+            >
+              {hasRowDetails && !hasColumnGroups ? <th className="w-14 px-3 py-3 font-medium" /> : null}
+              {selectionMode && !hasColumnGroups ? (
+                <th className="w-[72px] px-3 py-3 text-left font-medium">
                   {selectionMode === 'multi' ? (
                     <input
                       type="checkbox"
@@ -1150,13 +1325,62 @@ export function Table<Row>({
                   ) : null}
                 </th>
               ) : null}
-              {hasRowDetails ? <th className="w-14 px-3 py-3 font-medium" /> : null}
-              {visibleColumns.map((column) => {
+              {visibleColumns.map((column, columnIndex) => {
                 const sortable = !isActionColumn(column) && column.sortable !== false;
                 const activeSort = mergedState.sort?.columnId === column.id ? mergedState.sort.direction : null;
                 const headerContent = column.renderHeader ? column.renderHeader() : column.label;
+                const canReorderColumn = allowColumnReorder && !isActionColumn(column);
+                const tableDomColumnIndex = columnIndex + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0) + 1;
                 return (
-                  <th key={column.id} className={cn('relative px-3 py-3 font-medium', defaultAlignClass(column.align), column.headerClassName)}>
+                  <th
+                    key={column.id}
+                    draggable={canReorderColumn}
+                    aria-grabbed={canReorderColumn ? draggingColumnId === column.id : undefined}
+                    data-column-id={column.id}
+                    className={cn(
+                      'relative px-3 py-3 font-medium',
+                      canReorderColumn && 'cursor-grab active:cursor-grabbing',
+                      draggingColumnId === column.id && 'opacity-60',
+                      dragOverColumnId === column.id && draggingColumnId !== column.id && 'bg-[var(--rui-accent-muted)]',
+                      defaultAlignClass(column.align),
+                      column.headerClassName,
+                    )}
+                    onDragStart={(event) => {
+                      if (!canReorderColumn) return;
+                      removeDragPreview(dragPreviewRef.current);
+                      draggingColumnIdRef.current = column.id;
+                      setDraggingColumnId(column.id);
+                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/plain', column.id);
+                      const preview = createColumnDragPreview(tableContainerRef.current, tableDomColumnIndex);
+                      dragPreviewRef.current = preview;
+                      if (preview && typeof event.dataTransfer.setDragImage === 'function') {
+                        event.dataTransfer.setDragImage(preview, Math.min(preview.offsetWidth / 2, 160), 18);
+                      }
+                    }}
+                    onDragEnter={() => {
+                      const activeColumnId = draggingColumnIdRef.current || draggingColumnId;
+                      if (!canReorderColumn || !activeColumnId || activeColumnId === column.id) return;
+                      setDragOverColumnId(column.id);
+                    }}
+                    onDragOver={(event) => {
+                      const activeColumnId = draggingColumnIdRef.current || draggingColumnId;
+                      if (!canReorderColumn || !activeColumnId || activeColumnId === column.id) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(event) => {
+                      if (!canReorderColumn) return;
+                      event.preventDefault();
+                      const activeColumnId = event.dataTransfer.getData('text/plain') || draggingColumnIdRef.current || draggingColumnId;
+                      if (activeColumnId) moveColumn(activeColumnId, column.id);
+                      finishColumnDrag();
+                    }}
+                    onDragEnd={finishColumnDrag}
+                  >
+                    {dragOverColumnId === column.id && draggingColumnId !== column.id ? (
+                      <span className="pointer-events-none absolute inset-y-1 left-0 w-0.5 rounded-full bg-[var(--rui-accent)] shadow-[0_0_0_3px_var(--rui-accent-muted)]" />
+                    ) : null}
                     <div className="flex items-center gap-1 pr-3">
                       {column.renderHeader ? (
                         <div className={cn('flex min-w-0 flex-1 items-center', column.align === 'right' ? 'justify-end' : column.align === 'center' ? 'justify-center' : '')}>
@@ -1180,15 +1404,21 @@ export function Table<Row>({
                         <span className="truncate">{headerContent}</span>
                       )}
                     </div>
-                    {!isActionColumn(column) ? (
+                    {allowColumnResize && !isActionColumn(column) ? (
                       <div
                         className="absolute inset-y-1 right-0 w-2 cursor-col-resize rounded-full transition hover:bg-white/10"
+                        aria-hidden="true"
                         onMouseDown={(event) => {
                           event.preventDefault();
+                          event.stopPropagation();
+                          document.body.style.cursor = 'col-resize';
+                          document.body.style.userSelect = 'none';
+                          const startWidth = Number(tableMetrics.columnWidths[column.id] || columnBaseWidths[column.id] || 160);
                           resizeStateRef.current = {
                             columnId: column.id,
                             startX: event.clientX,
-                            startWidth: Number(mergedState.columnWidths[column.id] || column.width || column.minWidth || 160),
+                            startWidth,
+                            nextWidth: startWidth,
                           };
                         }}
                       />
@@ -1196,17 +1426,18 @@ export function Table<Row>({
                   </th>
                 );
               })}
+              {hasFillerColumn && !hasColumnGroups ? <th className="px-3 py-3" aria-hidden="true" /> : null}
             </tr>
           </thead>
           <tbody>
             {virtualEnabled && topSpacerHeight ? (
               <tr>
-                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} style={{ height: topSpacerHeight }} />
+                <td colSpan={tableColumnCount} style={{ height: topSpacerHeight }} />
               </tr>
             ) : null}
             {loading ? (
               <tr>
-                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-8 text-center text-[var(--rui-text-tertiary)]">
+                <td colSpan={tableColumnCount} className="px-3 py-8 text-center text-[var(--rui-text-tertiary)]">
                   {loadingContent}
                 </td>
               </tr>
@@ -1222,9 +1453,25 @@ export function Table<Row>({
                   const selectionDisabled = selection?.isRowDisabled?.(row);
                   return (
                     <React.Fragment key={id}>
-                      <tr className={cn('border-b border-[var(--rui-border-soft)] align-top last:border-none', selected && 'bg-[var(--rui-accent-muted)]', computedRowClassName, classNames?.row)}>
-                        {selectionMode ? (
+                      <tr
+                        className={cn(
+                          'border-b border-[var(--rui-border-soft)] align-top last:border-none',
+                          selected && 'bg-[var(--rui-accent-muted)]',
+                          computedRowClassName,
+                          classNames?.row,
+                        )}
+                      >
+                        {hasRowDetails ? (
                           <td className="px-3 py-3">
+                            {hasExpandedContent ? (
+                              <Button variant="ghost" size="sm" className="w-9 px-0" onClick={() => toggleExpanded(row)} title={expanded ? 'Collapse row' : 'Expand row'}>
+                                <Icon name={expanded ? 'chevron-down' : 'chevron-right'} className="h-4 w-4" />
+                              </Button>
+                            ) : null}
+                          </td>
+                        ) : null}
+                        {selectionMode ? (
+                          <td className="px-3 py-3 text-left">
                             <input
                               type={selectionMode === 'single' ? 'radio' : 'checkbox'}
                               checked={selected}
@@ -1243,20 +1490,14 @@ export function Table<Row>({
                             />
                           </td>
                         ) : null}
-                        {hasRowDetails ? (
-                          <td className="px-3 py-3">
-                            {hasExpandedContent ? (
-                              <Button variant="ghost" size="sm" className="w-9 px-0" onClick={() => toggleExpanded(row)} title={expanded ? 'Collapse row' : 'Expand row'}>
-                                <Icon name={expanded ? 'chevron-down' : 'chevron-right'} className="h-4 w-4" />
-                              </Button>
-                            ) : null}
-                          </td>
-                        ) : null}
                         {visibleColumns.map((column) => {
                           const content = column.renderCell ? column.renderCell(row) : renderPrimitiveValue(getColumnValue(row, column));
                           const computedCellClassName = typeof column.cellClassName === 'function' ? column.cellClassName(row) : column.cellClassName;
                           return (
-                            <td key={column.id} className={cn('px-3 py-3 text-[var(--rui-text-secondary)]', defaultAlignClass(column.align), computedCellClassName, classNames?.cell)}>
+                            <td
+                              key={column.id}
+                              className={cn('px-3 py-3 text-[var(--rui-text-secondary)]', defaultAlignClass(column.align), computedCellClassName, classNames?.cell)}
+                            >
                               {typeof content === 'string' || typeof content === 'number' ? (
                                 <div className={cn(column.wrap ? 'whitespace-normal break-words' : 'truncate')}>{content}</div>
                               ) : (
@@ -1265,10 +1506,11 @@ export function Table<Row>({
                             </td>
                           );
                         })}
+                        {hasFillerColumn ? <td aria-hidden="true" className="px-3 py-3" /> : null}
                       </tr>
                       {expanded && hasExpandedContent ? (
-                        <tr className={cn('border-b border-[var(--rui-border-soft)] last:border-none', detailRowClassName, classNames?.detailRow)}>
-                          <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-3">
+                        <tr data-rui-detail-row="true" className={cn('border-b border-[var(--rui-border-soft)] last:border-none', detailRowClassName, classNames?.detailRow)}>
+                          <td colSpan={tableColumnCount} className="px-3 py-3">
                             <div className="rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] p-4 text-sm text-[var(--rui-text-secondary)]">
                               {hiddenDetailColumns.length ? (
                                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -1293,12 +1535,12 @@ export function Table<Row>({
               : null}
             {virtualEnabled && bottomSpacerHeight ? (
               <tr>
-                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} style={{ height: bottomSpacerHeight }} />
+                <td colSpan={tableColumnCount} style={{ height: bottomSpacerHeight }} />
               </tr>
             ) : null}
             {!loading && !sortedFilteredRows.length ? (
               <tr>
-                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-8 text-center text-[var(--rui-text-tertiary)]">
+                <td colSpan={tableColumnCount} className="px-3 py-8 text-center text-[var(--rui-text-tertiary)]">
                   {emptyMessage}
                 </td>
               </tr>

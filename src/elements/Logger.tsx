@@ -103,7 +103,7 @@ function levelTone(level?: string) {
 
 function levelIcon(level?: string) {
   if (level === 'ERROR') return 'close';
-  if (level === 'WARN' || level === 'WARNING') return 'info';
+  if (level === 'WARN' || level === 'WARNING') return 'timer';
   if (level === 'SUCCESS') return 'check';
   if (level === 'INFO') return 'info';
   return 'actions';
@@ -329,7 +329,7 @@ export function Logger<Entry extends LoggerEntry = LoggerEntry>({
         </div>
       ) : null}
 
-      <div className={cn('min-w-0 flex-1 overflow-hidden rounded-[10px] border border-white/8 bg-[#0b1022]', classNames?.viewport)}>
+      <div className={cn('rui-logger-viewport min-w-0 flex-1 overflow-hidden rounded-[10px] border', classNames?.viewport)}>
         <div ref={scrollRef} className={cn(heightClassName, 'min-h-0 overflow-auto select-text rui-scrollbar [scrollbar-gutter:stable]')}>
           {filtered.length ? (
             filtered.map((entry) => {
@@ -338,7 +338,7 @@ export function Logger<Entry extends LoggerEntry = LoggerEntry>({
               const isExpanded = expandedIds.has(entry.id);
               return (
                 <React.Fragment key={entry.id}>
-                  <div className={cn('border-b border-white/6 px-3 py-2 font-mono text-xs last:border-none', classNames?.entry)}>
+                  <div className={cn('rui-logger-row border-b px-3 py-2 font-mono text-xs last:border-none', classNames?.entry)}>
                     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                       <div className="min-w-0">
                         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-white/80">
@@ -364,7 +364,7 @@ export function Logger<Entry extends LoggerEntry = LoggerEntry>({
                             variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-[11px]"
-                            leftIcon={<Icon name="info" className="h-4 w-4" />}
+                            leftIcon={<Icon name="eye" className="h-4 w-4" />}
                             onClick={() => toggleExpanded(entry.id)}
                           >
                             {isExpanded ? 'Hide payload' : 'View payload'}
@@ -376,11 +376,11 @@ export function Logger<Entry extends LoggerEntry = LoggerEntry>({
                     </div>
                   </div>
                   {isExpanded && hasPayload ? (
-                    <div className="border-b border-white/6 bg-black/20 px-3 py-3 last:border-none">
+                    <div className="rui-logger-payload-row border-b px-3 py-3 last:border-none">
                       {typeof payloadContent === 'string' ? (
                         <pre
                           className={cn(
-                            'overflow-x-auto whitespace-pre-wrap break-words rounded-[8px] border border-white/8 bg-[#070b18] p-3 font-mono text-[11px] leading-5 text-white/75 select-text',
+                            'rui-logger-payload-pre overflow-x-auto whitespace-pre-wrap break-words rounded-[8px] border p-3 font-mono text-[11px] leading-5 text-white/75 select-text',
                             classNames?.payload,
                           )}
                         >

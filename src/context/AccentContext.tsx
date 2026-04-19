@@ -36,6 +36,11 @@ export interface AccentTokens {
   danger?: string;
   dangerSoft?: string;
   dangerBorder?: string;
+  logBg?: string;
+  logRowBg?: string;
+  logBorder?: string;
+  logPayloadBg?: string;
+  logPayloadPreBg?: string;
   shadowPanel?: string;
   radiusPanel?: string;
   radiusControl?: string;
@@ -67,7 +72,7 @@ export const defaultAccentTokens: Required<AccentTokens> = {
   bgCard2: '#303466',
   bgPanel: '#2d305f',
   bgPanel2: '#303466',
-  bgInput: '#e7e9ef',
+  bgInput: 'rgba(25, 199, 220, 0.08)',
   borderSoft: 'rgba(255, 255, 255, 0.08)',
   borderStrong: 'rgba(255, 255, 255, 0.12)',
   textPrimary: '#f3f5fc',
@@ -91,6 +96,11 @@ export const defaultAccentTokens: Required<AccentTokens> = {
   danger: '#f06d78',
   dangerSoft: 'rgba(240, 109, 120, 0.18)',
   dangerBorder: 'rgba(240, 109, 120, 0.55)',
+  logBg: '#0b1022',
+  logRowBg: 'transparent',
+  logBorder: 'rgba(255, 255, 255, 0.06)',
+  logPayloadBg: 'rgba(0, 0, 0, 0.2)',
+  logPayloadPreBg: '#070b18',
   shadowPanel: '0 14px 30px rgba(6, 9, 35, 0.22)',
   radiusPanel: '14px',
   radiusControl: '4px',
@@ -101,6 +111,7 @@ export const defaultAccentPresets: Record<string, AccentTokens> = {
   accent: {},
   cyan: {},
   teal: {
+    bgInput: 'rgba(25, 211, 168, 0.08)',
     accent: '#19d3a8',
     accentStrong: '#11b891',
     accentSoft: 'rgba(25, 211, 168, 0.14)',
@@ -109,6 +120,7 @@ export const defaultAccentPresets: Record<string, AccentTokens> = {
     accentBorderSoft: 'rgba(25, 211, 168, 0.28)',
   },
   success: {
+    bgInput: 'rgba(25, 211, 168, 0.08)',
     accent: '#19d3a8',
     accentStrong: '#11b891',
     accentSoft: 'rgba(25, 211, 168, 0.14)',
@@ -117,6 +129,7 @@ export const defaultAccentPresets: Record<string, AccentTokens> = {
     accentBorderSoft: 'rgba(25, 211, 168, 0.28)',
   },
   warning: {
+    bgInput: 'rgba(240, 180, 79, 0.08)',
     accent: '#f0b44f',
     accentStrong: '#d99725',
     accentSoft: 'rgba(240, 180, 79, 0.14)',
@@ -125,6 +138,7 @@ export const defaultAccentPresets: Record<string, AccentTokens> = {
     accentBorderSoft: 'rgba(240, 180, 79, 0.28)',
   },
   danger: {
+    bgInput: 'rgba(235, 106, 118, 0.08)',
     accent: '#eb6a76',
     accentStrong: '#d84d5c',
     accentSoft: 'rgba(235, 106, 118, 0.14)',
@@ -133,6 +147,7 @@ export const defaultAccentPresets: Record<string, AccentTokens> = {
     accentBorderSoft: 'rgba(235, 106, 118, 0.28)',
   },
   neutral: {
+    bgInput: 'rgba(255, 255, 255, 0.06)',
     accent: '#c1c8dc',
     accentStrong: '#f5f7ff',
     accentSoft: 'rgba(255, 255, 255, 0.08)',
@@ -150,7 +165,7 @@ const tailAdminLightBase: AccentTokens = {
   bgCard2: '#f9fafb',
   bgPanel: '#ffffff',
   bgPanel2: '#f9fafb',
-  bgInput: '#ffffff',
+  bgInput: '#ecf3ff',
   borderSoft: '#e4e7ec',
   borderStrong: '#d0d5dd',
   textPrimary: '#101828',
@@ -197,6 +212,7 @@ Object.assign(defaultAccentPresets, {
   'light-blue': {
     ...tailAdminLightBase,
     accent: '#0ba5ec',
+    bgInput: '#f0f9ff',
     accentStrong: '#007aff',
     accentSoft: '#f0f9ff',
     accentMuted: 'rgba(11, 165, 236, 0.08)',
@@ -208,6 +224,7 @@ Object.assign(defaultAccentPresets, {
   'light-success': {
     ...tailAdminLightBase,
     accent: '#12b76a',
+    bgInput: '#ecfdf3',
     accentStrong: '#039855',
     accentSoft: '#ecfdf3',
     accentMuted: 'rgba(18, 183, 106, 0.08)',
@@ -219,6 +236,7 @@ Object.assign(defaultAccentPresets, {
   'light-warning': {
     ...tailAdminLightBase,
     accent: '#f79009',
+    bgInput: '#fffaeb',
     accentStrong: '#dc6803',
     accentSoft: '#fffaeb',
     accentMuted: 'rgba(247, 144, 9, 0.08)',
@@ -230,6 +248,7 @@ Object.assign(defaultAccentPresets, {
   'light-danger': {
     ...tailAdminLightBase,
     accent: '#f04438',
+    bgInput: '#fef3f2',
     accentStrong: '#d92d20',
     accentSoft: '#fef3f2',
     accentMuted: 'rgba(240, 68, 56, 0.08)',
@@ -241,6 +260,7 @@ Object.assign(defaultAccentPresets, {
   'light-neutral': {
     ...tailAdminLightBase,
     accent: '#667085',
+    bgInput: '#f2f4f7',
     accentStrong: '#344054',
     accentSoft: '#f2f4f7',
     accentMuted: 'rgba(16, 24, 40, 0.05)',
@@ -301,6 +321,11 @@ export function accentTokensToCssVars(tokens: AccentTokens): AccentCssProperties
     '--rui-danger': resolved.danger,
     '--rui-danger-soft': resolved.dangerSoft,
     '--rui-danger-border': resolved.dangerBorder,
+    '--rui-log-bg': resolved.logBg,
+    '--rui-log-row-bg': resolved.logRowBg,
+    '--rui-log-border': resolved.logBorder,
+    '--rui-log-payload-bg': resolved.logPayloadBg,
+    '--rui-log-payload-pre-bg': resolved.logPayloadPreBg,
     '--rui-shadow-panel': resolved.shadowPanel,
     '--rui-radius-panel': resolved.radiusPanel,
     '--rui-radius-control': resolved.radiusControl,

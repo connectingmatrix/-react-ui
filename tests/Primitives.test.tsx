@@ -387,7 +387,7 @@ describe('Banner', () => {
 describe('Logger', () => {
   it('filters and expands payloads', async () => {
     const user = userEvent.setup();
-    render(
+    const { container } = render(
       <Logger
         entries={[
           { id: 'one', level: 'INFO', category: 'system', source: 'demo', message: 'Alpha event', payload: { ok: true }, createdAt: '2026-04-19T00:00:00Z' },
@@ -399,6 +399,8 @@ describe('Logger', () => {
     await user.type(screen.getByPlaceholderText('Search logs'), 'alpha');
     expect(screen.getByText('Alpha event')).toBeInTheDocument();
     expect(screen.queryByText('Beta event')).not.toBeInTheDocument();
+    expect(container.querySelector('.rui-logger-viewport')).toBeInTheDocument();
+    expect(container.querySelector('.rui-logger-row')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /view payload/i }));
     expect(screen.getByText(/"ok": true/)).toBeInTheDocument();
   });
