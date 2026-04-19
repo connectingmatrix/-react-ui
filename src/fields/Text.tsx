@@ -86,15 +86,16 @@ export const Text = forwardRef<HTMLInputElement, TextProps>(function Text(
     />
   );
 
-  const control = prefix || suffix ? (
-    <div className={cn('flex min-w-0 items-stretch gap-2')}>
-      {prefix ? <div className="inline-flex items-center text-[var(--rui-text-tertiary)]">{prefix}</div> : null}
-      {input}
-      {suffix ? <div className="inline-flex items-center text-[var(--rui-text-tertiary)]">{suffix}</div> : null}
-    </div>
-  ) : (
-    input
-  );
+  const control =
+    prefix || suffix ? (
+      <div className={cn('flex min-w-0 items-stretch gap-2')}>
+        {prefix ? <div className="inline-flex items-center text-[var(--rui-text-tertiary)]">{prefix}</div> : null}
+        {input}
+        {suffix ? <div className="inline-flex items-center text-[var(--rui-text-tertiary)]">{suffix}</div> : null}
+      </div>
+    ) : (
+      input
+    );
 
   if (!label && !description && !error && !helperText && !prefix && !suffix) {
     return input;

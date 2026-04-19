@@ -3,3 +3,6 @@ storybook-static
 .DS_Store
 .vite
 coverage
+.pnp.*
+.yarn/
+yarn.lock

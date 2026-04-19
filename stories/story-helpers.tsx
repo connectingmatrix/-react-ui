@@ -94,6 +94,28 @@ export function PropsUsage({ props }: { props: PropUsage[] }) {
   );
 }
 
+export function CodeSnippet({ code }: { code: string }) {
+  return (
+    <div className="rounded-[10px] border border-white/8 bg-[#050816]">
+      <div className="border-b border-white/8 px-3 py-2 text-xs uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">Copyable usage snippet</div>
+      <pre className="max-h-[420px] overflow-auto p-3 text-[11px] leading-5 text-white/75">
+        <code>{code.trim()}</code>
+      </pre>
+    </div>
+  );
+}
+
+export function LiveProps({ value }: { value: Record<string, unknown> }) {
+  return (
+    <div className="rounded-[10px] border border-[var(--rui-accent-border)] bg-[var(--rui-accent-muted)] p-3">
+      <div className="mb-2 text-xs uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">Updated props / state</div>
+      <pre className="overflow-auto text-[11px] leading-5 text-white/80">
+        <code>{JSON.stringify(value, null, 2)}</code>
+      </pre>
+    </div>
+  );
+}
+
 export function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">

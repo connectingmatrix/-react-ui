@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['dist/**', 'storybook-static/**', 'node_modules/**', 'coverage/**'],
+    ignores: ['dist/**', 'storybook-static/**', 'node_modules/**', 'coverage/**', '.pnp.*', '.yarn/**'],
   },
   {
     files: ['**/*.cjs'],

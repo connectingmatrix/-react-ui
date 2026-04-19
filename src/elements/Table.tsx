@@ -917,16 +917,8 @@ export function Table<Row>({
       const value = (mergedState.filters[column.id] || {}) as { from?: string; to?: string };
       return (
         <div className="space-y-3">
-          <DateTimeSelector
-            type="datetime-local"
-            value={value.from || ''}
-            onChange={(nextValue) => setFilter(column.id, { ...value, from: nextValue })}
-          />
-          <DateTimeSelector
-            type="datetime-local"
-            value={value.to || ''}
-            onChange={(nextValue) => setFilter(column.id, { ...value, to: nextValue })}
-          />
+          <DateTimeSelector type="datetime-local" value={value.from || ''} onChange={(nextValue) => setFilter(column.id, { ...value, from: nextValue })} />
+          <DateTimeSelector type="datetime-local" value={value.to || ''} onChange={(nextValue) => setFilter(column.id, { ...value, to: nextValue })} />
         </div>
       );
     }

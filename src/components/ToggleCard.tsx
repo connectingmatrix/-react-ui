@@ -78,12 +78,7 @@ export function ToggleCard({
       </div>
       <div className="flex flex-shrink-0 items-center gap-3">
         {trailing}
-        <Switch
-          checked={isChecked}
-          onCheckedChange={setChecked}
-          disabled={disabled}
-          aria-label={typeof title === 'string' ? title : undefined}
-        />
+        <Switch checked={isChecked} onCheckedChange={setChecked} disabled={disabled} aria-label={typeof title === 'string' ? title : undefined} />
       </div>
     </div>
   );

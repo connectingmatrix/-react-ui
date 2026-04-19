@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactElement, ReactNode } from 'react';
 import { forwardRef, isValidElement } from 'react';
 import type { AccentKey } from '../context/AccentContext';
 import { useAccentStyle } from '../context/AccentContext';
@@ -46,6 +46,15 @@ function Spinner() {
   );
 }
 
+function isScreenReaderOnlyElement(child: ReactNode): child is ReactElement<{ className?: string }> {
+  return (
+    isValidElement<{ className?: string }>(child) &&
+    String(child.props.className || '')
+      .split(/\s+/)
+      .includes('sr-only')
+  );
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     className,
@@ -69,7 +78,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   const isDisabled = disabled || loading;
   const accentStyle = useAccentStyle(accentKey, style);
   const hasChildren = children !== undefined && children !== null && children !== false;
-  const iconOnlyChild = hasChildren && !leftIcon && !rightIcon && isValidElement(children);
+  const screenReaderOnlyChild = isScreenReaderOnlyElement(children);
+  const hasVisibleChildren = hasChildren && !screenReaderOnlyChild;
+  const iconOnlyChild = hasVisibleChildren && !leftIcon && !rightIcon && isValidElement(children);
 
   return (
     <button
@@ -88,7 +99,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       {...props}
     >
       {loading ? <Spinner /> : leftIcon ? <span className={cn('inline-flex shrink-0 items-center', leftIconClassName)}>{leftIcon}</span> : null}
-      {hasChildren ? <span className={cn('inline-flex items-center justify-center', iconOnlyChild ? 'shrink-0' : 'min-w-0 truncate')}>{children}</span> : null}
+      {hasChildren ? (
+        screenReaderOnlyChild ? (
+          children
+        ) : (
+          <span className={cn('inline-flex items-center justify-center', iconOnlyChild ? 'shrink-0' : 'min-w-0 truncate')}>{children}</span>
+        )
+      ) : null}
       {rightIcon ? <span className={cn('inline-flex shrink-0 items-center', rightIconClassName)}>{rightIcon}</span> : null}
     </button>
   );
