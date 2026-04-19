@@ -36,7 +36,7 @@ export function ChipCard({
   helper,
   leading,
   trailing,
-  tone = 'neutral',
+  tone = 'accent',
   selected = false,
   disabled = false,
   onClick,

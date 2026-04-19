@@ -3,13 +3,20 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AccentProvider } from '../src/context/AccentContext';
+import Badge from '../src/components/Badge';
 import Banner from '../src/components/Banner';
 import Button from '../src/components/Button';
+import Card from '../src/components/Card';
+import ChipCard from '../src/components/ChipCard';
+import RadioCard from '../src/components/RadioCard';
+import Switch from '../src/components/Switch';
+import ToggleCard from '../src/components/ToggleCard';
 import GridLayout from '../src/layouts/GridLayout';
 import type { GridPanelState } from '../src/layouts/GridLayout';
 import Logger from '../src/elements/Logger';
 import NotificationViewport, { Notification } from '../src/elements/NotificationViewport';
 import SelectBox from '../src/components/SelectBox';
+import DateTimeSelector from '../src/fields/DateTimeSelector';
 import NumberInput from '../src/fields/NumberInput';
 import Text from '../src/fields/Text';
 import TextArea from '../src/fields/TextArea';
@@ -120,13 +127,92 @@ describe('AccentContext', () => {
   });
 });
 
+describe('Tones', () => {
+  it('defaults badge and chip card tones to accent', () => {
+    render(
+      <>
+        <Badge>Default badge</Badge>
+        <ChipCard title="Default card" value="128" />
+      </>,
+    );
+
+    expect(screen.getByText('Default badge')).toHaveClass('bg-[var(--rui-accent-soft)]');
+    expect(screen.getByText('Default card').closest('[class*="rounded-"]')).toHaveClass('bg-[linear-gradient(180deg,var(--rui-accent-muted),var(--rui-bg-card))]');
+  });
+});
+
+describe('Card', () => {
+  it('renders generic panel content with default padding', () => {
+    render(<Card>Reusable panel</Card>);
+
+    expect(screen.getByText('Reusable panel')).toHaveClass('p-5');
+  });
+
+  it('supports accent keys and padding overrides', () => {
+    render(
+      <Card accentKey="warning" padded={false}>
+        Warning panel
+      </Card>,
+    );
+
+    const card = screen.getByText('Warning panel');
+    expect(card.style.getPropertyValue('--rui-accent')).toBe('#f0b44f');
+    expect(card).not.toHaveClass('p-5');
+  });
+});
+
+describe('Switching controls', () => {
+  it('toggles Switch on and off', async () => {
+    const user = userEvent.setup();
+    const onCheckedChange = vi.fn();
+    render(<Switch onCheckedChange={onCheckedChange} aria-label="Power" />);
+
+    const control = screen.getByRole('switch', { name: 'Power' });
+    await user.click(control);
+    await user.click(control);
+
+    expect(onCheckedChange).toHaveBeenNthCalledWith(1, true);
+    expect(onCheckedChange).toHaveBeenNthCalledWith(2, false);
+  });
+
+  it('toggles ToggleCard when the card body is clicked', async () => {
+    const user = userEvent.setup();
+    const onCheckedChange = vi.fn();
+    render(<ToggleCard title="Auto-stop" description="Stop on suspend." onCheckedChange={onCheckedChange} />);
+
+    await user.click(screen.getByText('Auto-stop'));
+
+    expect(onCheckedChange).toHaveBeenCalledWith(true);
+  });
+
+  it('allows standalone RadioCard controls to turn off', async () => {
+    const user = userEvent.setup();
+    const onCheckedChange = vi.fn();
+    render(<RadioCard defaultChecked title="Standalone option" onCheckedChange={onCheckedChange} />);
+
+    await user.click(screen.getByLabelText('Standalone option'));
+
+    expect(onCheckedChange).toHaveBeenCalledWith(false);
+  });
+
+  it('keeps named RadioCard groups as one-way radio choices', async () => {
+    const user = userEvent.setup();
+    const onCheckedChange = vi.fn();
+    render(<RadioCard checked name="mode" title="Grouped option" onCheckedChange={onCheckedChange} />);
+
+    await user.click(screen.getByLabelText('Grouped option'));
+
+    expect(onCheckedChange).not.toHaveBeenCalledWith(false);
+  });
+});
+
 describe('GridLayout', () => {
   it('collapses and restores panels', async () => {
     const user = userEvent.setup();
     render(<GridLayout panels={[{ id: 'one', title: 'One', content: <div>Panel body</div> }]} />);
 
     expect(screen.getByText('Panel body')).toBeInTheDocument();
-    await user.click(screen.getByTitle('Collapse panel'));
+    await user.click(screen.getByTitle('Minimize panel'));
     expect(screen.queryByText('Panel body')).not.toBeInTheDocument();
   });
 
@@ -152,7 +238,7 @@ describe('GridLayout', () => {
       />,
     );
 
-    fireEvent.dragStart(screen.getAllByTitle('Drag panel')[0], { dataTransfer });
+    fireEvent.dragStart(screen.getAllByTitle('Drag handle')[0], { dataTransfer });
     fireEvent.dragOver(screen.getByText('Two'), { dataTransfer });
     fireEvent.drop(screen.getByText('Two'), { dataTransfer });
 
@@ -304,6 +390,25 @@ describe('Text', () => {
 
     expect(screen.getByText('Used in reports')).toBeInTheDocument();
     expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('description'));
+  });
+});
+
+describe('DateTimeSelector', () => {
+  it('renders datetime-local controls through the field API', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<DateTimeSelector label="From" value="" onChange={onChange} />);
+
+    const input = screen.getByLabelText('From');
+    expect(input).toHaveAttribute('type', 'datetime-local');
+    await user.type(input, '2026-04-19T10:30');
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('supports date-only controls', () => {
+    render(<DateTimeSelector type="date" label="Run date" value="2026-04-19" />);
+
+    expect(screen.getByLabelText('Run date')).toHaveAttribute('type', 'date');
   });
 });
 

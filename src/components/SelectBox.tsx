@@ -70,12 +70,19 @@ export interface SelectBoxProps<TValue, TMode extends SelectBoxMode = 'single'> 
   renderValue?: (value: SelectBoxValue<TValue, TMode>, selectedOptions: SelectBoxOption<TValue>[]) => ReactNode;
 }
 
+function optionTextFromLabel(label: ReactNode, fallback: string) {
+  if (typeof label === 'string' || typeof label === 'number') return String(label);
+  return fallback;
+}
+
 function normalizeOption<TValue>(option: TValue | SelectBoxOption<TValue>): SelectBoxOption<TValue> {
   if (typeof option === 'object' && option !== null && 'value' in option) {
+    const fallback = String(option.value);
+    const label = option.label ?? option.text ?? fallback;
     return {
       value: option.value,
-      label: option.label ?? option.text ?? String(option.value),
-      text: option.text ?? String(option.value),
+      label,
+      text: option.text ?? optionTextFromLabel(option.label, fallback),
       keywords: option.keywords ?? '',
       description: option.description,
       disabled: option.disabled,
@@ -221,8 +228,9 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
       if (selectedOptions.length <= 2) return selectedOptions.map((option) => option.text ?? String(option.value)).join(', ');
       return `${values.length} selected`;
     }
-    if (currentValue == null) return placeholder;
-    return selectedOptions[0]?.text ?? String(currentValue);
+    if (selectedOptions[0]) return selectedOptions[0].text ?? String(selectedOptions[0].value);
+    if (currentValue == null || currentValue === '') return placeholder;
+    return String(currentValue);
   }, [currentValue, mode, placeholder, renderValue, selectedOptions, summaryText]);
 
   useEffect(() => {
@@ -313,22 +321,25 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
           aria-expanded={open}
           onClick={() => !disabled && setOpen((current) => !current)}
           className={cn(
-            'flex h-10 w-full items-center justify-between gap-3 rounded-[var(--rui-radius-control)] border px-3 text-left text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60',
-            open ? 'border-[var(--rui-accent-border)] bg-white/[0.08] text-white' : 'rui-input text-[#1c2134] hover:border-[var(--rui-accent-border)]',
+            'flex h-10 w-full items-center justify-between gap-3 rounded-[4px] border px-4 text-left text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60',
+            open
+              ? 'border-[var(--rui-accent)] bg-[var(--rui-bg-input)] text-[#1c1f31]'
+              : 'border-[rgba(18,22,50,0.28)] bg-[var(--rui-bg-input)] text-[#1c1f31] hover:border-[var(--rui-accent)]',
             triggerClassName,
           )}
         >
           <span
             className={cn(
               'min-w-0 flex-1 truncate',
-              currentValue == null || (Array.isArray(currentValue) && !(currentValue as TValue[]).length) ? 'text-[var(--rui-text-tertiary)]' : 'text-inherit',
+              currentValue == null || (Array.isArray(currentValue) && !(currentValue as TValue[]).length) ? 'text-[#747a95]' : 'text-[#1c1f31]',
               summaryClassName,
             )}
           >
             {summary as ReactNode}
           </span>
-          <span className="flex items-center gap-2 text-[var(--rui-text-tertiary)]">
+          <span className="flex items-center gap-2 text-[#737a98]">
             {endAdornment ? <span className={cn('inline-flex items-center', endAdornmentClassName)}>{endAdornment}</span> : null}
+            {!endAdornment && mode === 'multiple' ? <span className={cn('text-xs uppercase tracking-wider', endAdornmentClassName)}>{selectedValueList.length}</span> : null}
             {clearable && ((mode === 'multiple' && (currentValue as TValue[] | undefined)?.length) || (mode === 'single' && currentValue != null)) ? (
               <span
                 role="button"
@@ -351,7 +362,7 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
         {open && !disabled ? (
           <div
             className={cn(
-              'absolute left-0 right-0 top-full z-[130] mt-2 max-h-[320px] overflow-hidden rounded-[var(--rui-radius-panel)] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-surface)] shadow-[0_18px_44px_rgba(0,0,0,0.36)]',
+              'absolute left-0 right-0 top-full z-[130] mt-2 max-h-[320px] overflow-hidden rounded-[10px] border border-white/10 bg-[var(--rui-bg-panel)] shadow-panel',
               menuClassName,
             )}
           >
@@ -385,16 +396,16 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
               </div>
             ) : null}
             {searchable ? (
-              <div className="border-b border-[var(--rui-border-soft)] p-2.5">
+              <div className="border-b border-white/8 p-3">
                 <div className="relative">
-                  <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--rui-text-tertiary)]" />
+                  <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
                   <input
                     ref={searchRef}
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder={searchPlaceholder}
                     className={cn(
-                      'rui-input h-9 w-full pl-9 pr-3 text-sm outline-none placeholder:text-[var(--rui-text-tertiary)] focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0',
+                      'h-10 w-full rounded-[6px] border border-white/10 bg-black/20 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[var(--rui-accent)] focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0',
                       searchClassName,
                     )}
                   />
@@ -419,7 +430,7 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
                       }}
                       className={cn(
                         'flex w-full items-start justify-between gap-3 rounded-[8px] px-3 py-2.5 text-left text-sm transition',
-                        selected ? 'bg-[rgba(52,212,232,0.14)] text-white' : 'text-[var(--rui-text-secondary)] hover:bg-white/[0.06] hover:text-white',
+                        selected ? 'bg-[var(--rui-accent-soft)] text-white' : 'text-white/75 hover:bg-white/[0.06] hover:text-white',
                         disabledOption && 'cursor-not-allowed opacity-50',
                         optionClassName,
                       )}

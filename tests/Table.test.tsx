@@ -83,6 +83,19 @@ describe('Table', () => {
     expect(screen.getByText('1 selected')).toBeInTheDocument();
   });
 
+  it('toggles single row selection off when the selected radio is clicked again', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Table rows={rows} columns={columns.slice(0, 2)} rowKey={(row) => row.id} selection={{ mode: 'single', onChange }} />);
+
+    const firstRowRadio = screen.getAllByRole('radio')[0];
+    await user.click(firstRowRadio);
+    await user.click(firstRowRadio);
+
+    expect(onChange).toHaveBeenNthCalledWith(1, ['a'], [rows[0]]);
+    expect(onChange).toHaveBeenNthCalledWith(2, [], []);
+  });
+
   it('renders a custom filter editor', async () => {
     const user = userEvent.setup();
     render(

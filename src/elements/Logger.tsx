@@ -4,6 +4,7 @@ import { useAccentStyle } from '../context/AccentContext';
 import { cn } from '../lib/cn';
 import Button from '../components/Button';
 import { Icon } from '../components/Icon';
+import SelectBox from '../components/SelectBox';
 
 export interface LoggerEntry {
   id: string;
@@ -295,34 +296,23 @@ export function Logger<Entry extends LoggerEntry = LoggerEntry>({
 
       {showToolbar ? (
         <div className={cn('flex min-w-0 shrink-0 flex-wrap items-center gap-2', classNames?.toolbar)}>
-          <div className="relative min-w-[160px] flex-[1_1_220px] lg:max-w-[320px]">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#737a98]">
-              <Icon name="search" className="h-4 w-4" />
-            </span>
+          <div className="min-w-[140px] flex-[1_1_180px] lg:max-w-[260px]">
             <input
-              className="h-9 w-full rounded-[8px] pl-10 pr-3 text-sm outline-none rui-input"
+              className="h-9 w-full rounded-[4px] px-4 text-sm outline-none rui-input"
               value={search}
               onChange={(event) => updateSearch(event.target.value)}
               placeholder={searchPlaceholder}
             />
           </div>
           {showLevelFilter ? (
-            <select className="h-9 min-w-[112px] rounded-[8px] px-3 text-sm outline-none rui-input" value={level} onChange={(event) => updateLevel(event.target.value)}>
-              {levels.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="min-w-[112px] flex-[0_1_132px]">
+              <SelectBox searchable value={level} options={levels} onChange={(value) => updateLevel(String(value ?? defaultLevel))} />
+            </div>
           ) : null}
           {showCategoryFilter ? (
-            <select className="h-9 min-w-[140px] rounded-[8px] px-3 text-sm outline-none rui-input" value={category} onChange={(event) => updateCategory(event.target.value)}>
-              {categories.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="min-w-[140px] flex-[0_1_176px]">
+              <SelectBox searchable value={category} options={categories} onChange={(value) => updateCategory(String(value ?? defaultCategory))} />
+            </div>
           ) : null}
           {!showHeader ? action : null}
           <Button variant="ghost" size="sm" onClick={() => updateAutoScroll(!autoScroll)}>
@@ -353,6 +343,7 @@ export function Logger<Entry extends LoggerEntry = LoggerEntry>({
                       <div className="min-w-0">
                         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-white/80">
                           <span className="shrink-0 text-white/45">{formatTimestamp ? formatTimestamp(entry) : formatDateTime(entry.createdAt ?? entry.timestamp)}</span>
+                          {entry.source || entry.category ? <span className="shrink-0 text-white/35">|</span> : null}
                           {entry.source || entry.category ? <span className="shrink-0 text-white/50">{[entry.source, entry.category].filter(Boolean).join('/')}</span> : null}
                           {renderMetadata
                             ? renderMetadata(entry)

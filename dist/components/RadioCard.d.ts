@@ -11,6 +11,7 @@ export interface RadioCardProps {
     helper?: ReactNode;
     leading?: ReactNode;
     trailing?: ReactNode;
+    toggleable?: boolean;
     disabled?: boolean;
     accentKey?: AccentKey;
     style?: CSSProperties;

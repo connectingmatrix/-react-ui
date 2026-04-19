@@ -16,6 +16,7 @@ export interface RadioCardProps {
   helper?: ReactNode;
   leading?: ReactNode;
   trailing?: ReactNode;
+  toggleable?: boolean;
   disabled?: boolean;
   accentKey?: AccentKey;
   style?: CSSProperties;
@@ -39,6 +40,7 @@ export const RadioCard = forwardRef<HTMLLabelElement, RadioCardProps>(function R
     helper,
     leading,
     trailing,
+    toggleable,
     disabled,
     accentKey,
     style,
@@ -57,6 +59,7 @@ export const RadioCard = forwardRef<HTMLLabelElement, RadioCardProps>(function R
     onChange: onCheckedChange,
   });
   const accentStyle = useAccentStyle(accentKey, style);
+  const canToggleOff = toggleable ?? !name;
 
   return (
     <label
@@ -74,7 +77,13 @@ export const RadioCard = forwardRef<HTMLLabelElement, RadioCardProps>(function R
         name={name}
         value={value}
         checked={isChecked}
+        onClick={(event) => {
+          if (disabled || !canToggleOff || !isChecked) return;
+          event.preventDefault();
+          setChecked(false);
+        }}
         onChange={(event) => {
+          if (canToggleOff && isChecked) return;
           if (!disabled) setChecked(event.target.checked);
         }}
         disabled={disabled}

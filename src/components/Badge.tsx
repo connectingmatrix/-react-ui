@@ -19,7 +19,7 @@ const toneClasses: Record<BadgeTone, string> = {
   info: 'border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-white',
 };
 
-export function Badge({ children, tone = 'neutral', className, accentKey, style, ...props }: BadgeProps) {
+export function Badge({ children, tone = 'accent', className, accentKey, style, ...props }: BadgeProps) {
   const accentStyle = useAccentStyle(accentKey, style);
 
   return (

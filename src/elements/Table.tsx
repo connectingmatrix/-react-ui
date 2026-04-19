@@ -5,6 +5,7 @@ import { useAccentStyle } from '../context/AccentContext';
 import { cn } from '../lib/cn';
 import Button from '../components/Button';
 import { Icon } from '../components/Icon';
+import DateTimeSelector from '../fields/DateTimeSelector';
 
 export type TableColumnKind = 'text' | 'enum' | 'number' | 'datetime' | 'boolean' | 'action';
 export type TableSortDirection = 'asc' | 'desc';
@@ -386,12 +387,21 @@ function getPersistenceKey(persistence: TablePersistence | false | undefined, ta
   return defaultStorageKey(key, persistence?.scope ?? scopeId, persistence?.namespace);
 }
 
+function stripPersistedTransientState(state: Partial<TableState>) {
+  const { expandedRowIds: _expandedRowIds, selectedRowIds: _selectedRowIds, ...persistentState } = state;
+  return persistentState;
+}
+
+function persistentTableState(state: TableState): TableState {
+  return { ...state, expandedRowIds: [], selectedRowIds: [] };
+}
+
 function readLocalState(key: string, storage?: Storage) {
   if (typeof window === 'undefined') return null;
   try {
     const targetStorage = storage || window.localStorage;
     const raw = targetStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? stripPersistedTransientState(JSON.parse(raw)) : null;
   } catch {
     return null;
   }
@@ -401,7 +411,7 @@ function writeLocalState(key: string, state: TableState, storage?: Storage) {
   if (typeof window === 'undefined') return;
   try {
     const targetStorage = storage || window.localStorage;
-    targetStorage.setItem(key, JSON.stringify(state));
+    targetStorage.setItem(key, JSON.stringify(stripPersistedTransientState(state)));
   } catch {
     // best effort persistence
   }
@@ -533,14 +543,26 @@ export function Table<Row>({
     if (expandedRowIds !== undefined) nextState.expandedRowIds = expandedRowIds;
     return normalizeState(nextState, columns);
   }, [columns, controlledState, expandedRowIds, uncontrolledState]);
+  const mergedStateRef = useRef<TableState>(mergedState);
+  mergedStateRef.current = mergedState;
 
   const setTableState = useCallback(
     (nextState: TableState | ((current: TableState) => TableState)) => {
-      const resolvedState = typeof nextState === 'function' ? nextState(mergedState) : nextState;
+      const currentState = normalizeState(
+        {
+          ...mergedStateRef.current,
+          ...controlledState,
+          ...(expandedRowIds !== undefined ? { expandedRowIds } : {}),
+        },
+        columnsRef.current,
+      );
+      const resolvedState = normalizeState(typeof nextState === 'function' ? nextState(currentState) : nextState, columnsRef.current);
+      mergedStateRef.current = resolvedState;
       setUncontrolledState(resolvedState);
-      onStateChange?.(resolvedState);
+      onStateChangeRef.current?.(resolvedState);
+      return resolvedState;
     },
-    [mergedState, onStateChange],
+    [controlledState, expandedRowIds],
   );
 
   useEffect(() => {
@@ -567,7 +589,7 @@ export function Table<Row>({
         if (cancelled) return;
         if (loaded) {
           setUncontrolledState((current) => {
-            const normalized = normalizeState({ ...current, ...loaded }, columnsRef.current);
+            const normalized = normalizeState({ ...current, ...stripPersistedTransientState(loaded) }, columnsRef.current);
             onStateChangeRef.current?.(normalized);
             return normalized;
           });
@@ -586,7 +608,7 @@ export function Table<Row>({
     if (!persistenceKey || persistenceDisabled) return;
     if (persistenceAdapter) {
       if (!adapterHydrated) return;
-      void Promise.resolve(persistenceAdapter.save(persistenceKey, mergedState)).catch(() => {});
+      void Promise.resolve(persistenceAdapter.save(persistenceKey, persistentTableState(mergedState))).catch(() => {});
       return;
     }
     writeLocalState(persistenceKey, mergedState, persistenceStorage);
@@ -797,12 +819,14 @@ export function Table<Row>({
 
   const toggleExpanded = (row: Row) => {
     const id = rowKey(row);
-    const next = new Set(expandedIds);
-    const expanded = !next.has(id);
-    if (expanded) next.add(id);
-    else next.delete(id);
-    const nextIds = Array.from(next);
-    setTableState((current) => ({ ...current, expandedRowIds: nextIds }));
+    const nextState = setTableState((current) => {
+      const next = new Set(current.expandedRowIds);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return { ...current, expandedRowIds: Array.from(next) };
+    });
+    const nextIds = nextState.expandedRowIds;
+    const expanded = nextIds.includes(id);
     onExpandedChange?.(nextIds, row);
     onRowExpand?.(row, expanded);
   };
@@ -872,14 +896,14 @@ export function Table<Row>({
       return (
         <div className="space-y-3">
           <input
-            className="h-10 w-full rounded-[8px] px-3 text-sm outline-none rui-input"
+            className="h-9 w-full rounded-[4px] px-4 text-sm outline-none rui-input"
             type="number"
             value={value.min || ''}
             onChange={(event) => setFilter(column.id, { ...value, min: event.target.value })}
             placeholder="Minimum"
           />
           <input
-            className="h-10 w-full rounded-[8px] px-3 text-sm outline-none rui-input"
+            className="h-9 w-full rounded-[4px] px-4 text-sm outline-none rui-input"
             type="number"
             value={value.max || ''}
             onChange={(event) => setFilter(column.id, { ...value, max: event.target.value })}
@@ -893,17 +917,15 @@ export function Table<Row>({
       const value = (mergedState.filters[column.id] || {}) as { from?: string; to?: string };
       return (
         <div className="space-y-3">
-          <input
-            className="h-10 w-full rounded-[8px] border border-white/10 bg-black/10 px-3 text-sm text-white outline-none"
+          <DateTimeSelector
             type="datetime-local"
             value={value.from || ''}
-            onChange={(event) => setFilter(column.id, { ...value, from: event.target.value })}
+            onChange={(nextValue) => setFilter(column.id, { ...value, from: nextValue })}
           />
-          <input
-            className="h-10 w-full rounded-[8px] border border-white/10 bg-black/10 px-3 text-sm text-white outline-none"
+          <DateTimeSelector
             type="datetime-local"
             value={value.to || ''}
-            onChange={(event) => setFilter(column.id, { ...value, to: event.target.value })}
+            onChange={(nextValue) => setFilter(column.id, { ...value, to: nextValue })}
           />
         </div>
       );
@@ -912,7 +934,7 @@ export function Table<Row>({
     if (kind === 'boolean') {
       const value = (mergedState.filters[column.id] as { value?: string })?.value || 'all';
       return (
-        <select className="h-10 w-full rounded-[8px] px-3 text-sm outline-none rui-input" value={value} onChange={(event) => setFilter(column.id, { value: event.target.value })}>
+        <select className="h-9 w-full rounded-[4px] px-4 text-sm outline-none rui-input" value={value} onChange={(event) => setFilter(column.id, { value: event.target.value })}>
           <option value="all">All</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
@@ -922,7 +944,7 @@ export function Table<Row>({
 
     return (
       <input
-        className="h-10 w-full rounded-[8px] px-3 text-sm outline-none rui-input"
+        className="h-9 w-full rounded-[4px] px-4 text-sm outline-none rui-input"
         value={String(mergedState.filters[column.id] || '')}
         onChange={(event) => setFilter(column.id, event.target.value)}
         placeholder={`Filter ${String(column.label)}`}
@@ -947,17 +969,14 @@ export function Table<Row>({
   ) : null;
 
   return (
-    <div ref={rootRef} className={cn('rui-theme flex min-h-0 flex-1 flex-col', className, classNames?.root)} style={accentStyle}>
+    <div ref={rootRef} className={cn('rui-theme flex min-h-0 w-full flex-1 flex-col', className, classNames?.root)} style={accentStyle}>
       {toolbarContent || tableToolbar || selectionActions || searchable || (!hideColumnControls && visibleHideableColumns.length) ? (
         <div className={cn('mb-3 flex flex-wrap items-center justify-between gap-2', classNames?.toolbar)}>
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             {searchable ? (
-              <div className="relative w-full max-w-[320px]">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[#737a98]">
-                  <Icon name="search" className="h-4 w-4" />
-                </span>
+              <div className="relative w-full max-w-[260px]">
                 <input
-                  className="h-10 w-full rounded-[8px] pl-10 pr-3 text-sm outline-none rui-input"
+                  className="h-9 w-full rounded-[4px] px-4 text-sm outline-none rui-input"
                   value={mergedState.globalSearch}
                   onChange={(event) => setGlobalSearch(event.target.value)}
                   placeholder={searchPlaceholder}
@@ -1106,7 +1125,7 @@ export function Table<Row>({
         : null}
 
       <div
-        className={cn('min-h-0 flex-1 overflow-auto rounded-[10px] border border-white/8 rui-scrollbar', containerClassName, classNames?.container)}
+        className={cn('min-h-0 w-full flex-1 overflow-auto rounded-[10px] border border-white/8', containerClassName, classNames?.container)}
         style={{ scrollbarGutter: 'stable both-edges', maxHeight: virtualEnabled ? maxHeight : undefined }}
         onScroll={(event) => {
           if (virtualEnabled) setScrollTop(event.currentTarget.scrollTop);
@@ -1218,7 +1237,15 @@ export function Table<Row>({
                               type={selectionMode === 'single' ? 'radio' : 'checkbox'}
                               checked={selected}
                               disabled={selectionDisabled}
-                              onChange={() => toggleSelected(row)}
+                              onClick={(event) => {
+                                if (selectionMode !== 'single' || !selected || selectionDisabled) return;
+                                event.preventDefault();
+                                toggleSelected(row);
+                              }}
+                              onChange={() => {
+                                if (selectionMode === 'single' && selected) return;
+                                toggleSelected(row);
+                              }}
                               className="h-4 w-4 rounded border-white/20 bg-transparent accent-[var(--rui-accent)] disabled:opacity-35"
                               aria-label={selected ? 'Deselect row' : 'Select row'}
                             />

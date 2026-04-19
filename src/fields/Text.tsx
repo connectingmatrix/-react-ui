@@ -66,29 +66,39 @@ export const Text = forwardRef<HTMLInputElement, TextProps>(function Text(
     [description ? `${inputId}-description` : null, error ? `${inputId}-error` : null, helperText ? `${inputId}-helper` : null].filter(Boolean).join(' ') || undefined;
   const accentStyle = useAccentStyle(accentKey, style);
 
-  const control = (
+  const input = (
+    <input
+      ref={ref}
+      id={inputId}
+      value={currentValue}
+      onChange={(event) => setValue(event.target.value)}
+      disabled={disabled}
+      required={required}
+      aria-invalid={Boolean(error) || undefined}
+      aria-describedby={describedBy}
+      style={accentStyle}
+      className={cn(
+        'rui-input h-10 min-w-0 w-full rounded-[4px] px-4 text-[15px] outline-none transition placeholder:text-[#747a95] focus:border-[var(--rui-accent)] focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60',
+        className,
+        inputClassName,
+      )}
+      {...props}
+    />
+  );
+
+  const control = prefix || suffix ? (
     <div className={cn('flex min-w-0 items-stretch gap-2')}>
       {prefix ? <div className="inline-flex items-center text-[var(--rui-text-tertiary)]">{prefix}</div> : null}
-      <input
-        ref={ref}
-        id={inputId}
-        value={currentValue}
-        onChange={(event) => setValue(event.target.value)}
-        disabled={disabled}
-        required={required}
-        aria-invalid={Boolean(error) || undefined}
-        aria-describedby={describedBy}
-        style={accentStyle}
-        className={cn(
-          'rui-input h-10 min-w-0 w-full px-3 text-sm outline-none transition placeholder:text-[var(--rui-text-tertiary)] focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60',
-          className,
-          inputClassName,
-        )}
-        {...props}
-      />
+      {input}
       {suffix ? <div className="inline-flex items-center text-[var(--rui-text-tertiary)]">{suffix}</div> : null}
     </div>
+  ) : (
+    input
   );
+
+  if (!label && !description && !error && !helperText && !prefix && !suffix) {
+    return input;
+  }
 
   return (
     <div className={cn(labelPosition === 'left' ? 'grid gap-2 md:grid-cols-[240px_minmax(0,1fr)] md:items-start' : 'space-y-2', wrapperClassName)}>

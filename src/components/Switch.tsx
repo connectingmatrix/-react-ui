@@ -47,35 +47,43 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
   const labelId = useId();
   const accentStyle = useAccentStyle(accentKey, style);
 
+  const control = (
+    <button
+      ref={ref}
+      type="button"
+      role="switch"
+      aria-checked={isChecked}
+      aria-labelledby={label ? labelId : undefined}
+      aria-label={typeof label === 'string' ? label : props['aria-label']}
+      disabled={disabled}
+      style={accentStyle}
+      onClick={() => {
+        if (!disabled) setChecked((current) => !current);
+      }}
+      className={cn(
+        'relative inline-flex h-8 w-[54px] flex-shrink-0 items-center rounded-full border outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0',
+        isChecked ? 'border-[rgba(25,199,220,0.4)] bg-[var(--rui-success)]/90' : 'border-white/10 bg-white/10',
+        disabled && 'opacity-60',
+        !label && !description && className,
+        trackClassName,
+      )}
+      {...props}
+    >
+      <span
+        className={cn(
+          'pointer-events-none absolute h-7 w-7 rounded-full bg-[#f1f1ee] shadow-[0_3px_10px_rgba(0,0,0,0.22)] transition-[left]',
+          isChecked ? 'left-[24px]' : 'left-[1px]',
+          thumbClassName,
+        )}
+      />
+    </button>
+  );
+
+  if (!label && !description) return control;
+
   return (
     <div className={cn('inline-flex items-start gap-3', disabled && 'cursor-not-allowed opacity-60', className)}>
-      <button
-        ref={ref}
-        type="button"
-        role="switch"
-        aria-checked={isChecked}
-        aria-labelledby={label ? labelId : undefined}
-        aria-label={typeof label === 'string' ? label : props['aria-label']}
-        disabled={disabled}
-        style={accentStyle}
-        onClick={() => {
-          if (!disabled) setChecked((current) => !current);
-        }}
-        className={cn(
-          'relative mt-0.5 inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0',
-          isChecked ? 'border-[var(--rui-accent-border)] bg-[var(--rui-accent)]' : 'border-[var(--rui-border-soft)] bg-white/10',
-          trackClassName,
-        )}
-        {...props}
-      >
-        <span
-          className={cn(
-            'pointer-events-none inline-flex h-5 w-5 translate-x-0 items-center justify-center rounded-full bg-white shadow-[0_3px_10px_rgba(0,0,0,0.22)] transition-transform',
-            isChecked && 'translate-x-5',
-            thumbClassName,
-          )}
-        />
-      </button>
+      {control}
       {(label || description) && (
         <span className="min-w-0">
           {label ? (

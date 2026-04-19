@@ -100,7 +100,7 @@ export interface PageContainerProps {
 export function PageContainer({ children, accentKey, style, className }: PageContainerProps) {
   const accentStyle = useAccentStyle(accentKey, style);
   return (
-    <div className={cn('rui-theme space-y-5 px-4 py-5', className)} style={accentStyle}>
+    <div className={cn('rui-theme w-full space-y-5 px-2 py-4 sm:px-4 sm:py-5', className)} style={accentStyle}>
       {children}
     </div>
   );

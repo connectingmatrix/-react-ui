@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { forwardRef } from 'react';
+import { forwardRef, isValidElement } from 'react';
 import type { AccentKey } from '../context/AccentContext';
 import { useAccentStyle } from '../context/AccentContext';
 import { cn } from '../lib/cn';
@@ -20,20 +20,19 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    'border border-[var(--rui-accent)] bg-[var(--rui-accent)] text-[#06111d] hover:border-[var(--rui-accent-strong)] hover:bg-[var(--rui-accent-strong)] focus-visible:ring-[var(--rui-accent)]',
-  secondary: 'border border-[var(--rui-accent-border-soft)] bg-[var(--rui-accent-muted)] text-white hover:bg-[var(--rui-accent-soft)] focus-visible:ring-[var(--rui-accent)]',
-  outline: 'border border-[var(--rui-border-strong)] bg-transparent text-white hover:border-[var(--rui-accent-border)] hover:bg-white/5 focus-visible:ring-[var(--rui-accent)]',
-  ghost: 'border border-transparent bg-transparent text-[var(--rui-text-secondary)] hover:bg-white/[0.06] hover:text-white focus-visible:ring-[var(--rui-accent)]',
+  primary: 'border border-[var(--rui-accent)] bg-[var(--rui-accent)] text-white hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
+  secondary: 'border border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-white hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
+  outline: 'border border-[var(--rui-accent)] bg-transparent text-white hover:bg-white/5 focus-visible:ring-[var(--rui-accent)]',
+  ghost: 'border border-white/10 bg-transparent text-[var(--rui-text-secondary)] hover:bg-white/5 hover:text-white focus-visible:ring-white/30',
   danger: 'border border-[var(--rui-danger-border)] bg-[var(--rui-danger-soft)] text-white hover:bg-[var(--rui-danger-soft)] focus-visible:ring-[var(--rui-danger)]',
   success: 'border border-[var(--rui-success-border)] bg-[var(--rui-success-soft)] text-white hover:bg-[var(--rui-success-soft)] focus-visible:ring-[var(--rui-success)]',
   warning: 'border border-[var(--rui-warning-border)] bg-[var(--rui-warning-soft)] text-white hover:bg-[var(--rui-warning-soft)] focus-visible:ring-[var(--rui-warning)]',
-  subtle: 'border border-[var(--rui-border-soft)] bg-white/5 text-white hover:bg-white/10 focus-visible:ring-[var(--rui-accent)]',
-  icon: 'border border-[var(--rui-border-soft)] bg-white/5 text-[var(--rui-text-secondary)] hover:bg-white/10 hover:text-white focus-visible:ring-[var(--rui-accent)]',
+  subtle: 'border border-white/10 bg-white/5 text-white hover:bg-white/10 focus-visible:ring-[var(--rui-accent)]',
+  icon: 'border border-white/10 bg-transparent text-[var(--rui-text-secondary)] hover:bg-white/5 hover:text-white focus-visible:ring-white/30',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-xs',
+  sm: 'h-9 px-3 text-sm',
   md: 'h-10 px-4 text-sm',
   lg: 'h-11 px-5 text-sm',
 };
@@ -69,6 +68,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 ) {
   const isDisabled = disabled || loading;
   const accentStyle = useAccentStyle(accentKey, style);
+  const hasChildren = children !== undefined && children !== null && children !== false;
+  const iconOnlyChild = hasChildren && !leftIcon && !rightIcon && isValidElement(children);
 
   return (
     <button
@@ -78,7 +79,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       style={accentStyle}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-[var(--rui-radius-control)] font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60',
+        'inline-flex items-center justify-center gap-2 rounded-[8px] font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/5 disabled:text-white/35 disabled:opacity-80',
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && 'w-full',
@@ -86,9 +87,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       )}
       {...props}
     >
-      {loading ? <Spinner /> : leftIcon ? <span className={cn('inline-flex items-center', leftIconClassName)}>{leftIcon}</span> : null}
-      <span className="min-w-0 truncate">{children}</span>
-      {rightIcon ? <span className={cn('inline-flex items-center', rightIconClassName)}>{rightIcon}</span> : null}
+      {loading ? <Spinner /> : leftIcon ? <span className={cn('inline-flex shrink-0 items-center', leftIconClassName)}>{leftIcon}</span> : null}
+      {hasChildren ? <span className={cn('inline-flex items-center justify-center', iconOnlyChild ? 'shrink-0' : 'min-w-0 truncate')}>{children}</span> : null}
+      {rightIcon ? <span className={cn('inline-flex shrink-0 items-center', rightIconClassName)}>{rightIcon}</span> : null}
     </button>
   );
 });

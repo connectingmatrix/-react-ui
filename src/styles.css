@@ -2,40 +2,40 @@
 @tailwind utilities;
 
 :root {
-  --rui-bg-app: #0f1423;
-  --rui-bg-surface: #171d30;
-  --rui-bg-surface-2: #1d2440;
-  --rui-bg-card: #222a48;
-  --rui-bg-card-2: #262f52;
-  --rui-bg-panel: var(--rui-bg-surface);
-  --rui-bg-panel-2: var(--rui-bg-surface-2);
-  --rui-bg-input: #edf0f7;
+  --rui-bg-app: #5d6180;
+  --rui-bg-surface: #2d305f;
+  --rui-bg-surface-2: #303466;
+  --rui-bg-card: #2d305f;
+  --rui-bg-card-2: #303466;
+  --rui-bg-panel: #2d305f;
+  --rui-bg-panel-2: #303466;
+  --rui-bg-input: #e7e9ef;
   --rui-border-soft: rgba(255, 255, 255, 0.08);
-  --rui-border-strong: rgba(255, 255, 255, 0.14);
-  --rui-text-primary: #f5f7ff;
-  --rui-text-secondary: #c1c8dc;
-  --rui-text-tertiary: #93a0bf;
+  --rui-border-strong: rgba(255, 255, 255, 0.12);
+  --rui-text-primary: #f3f5fc;
+  --rui-text-secondary: #b0b6d3;
+  --rui-text-tertiary: #8f95b7;
   --rui-text-main: var(--rui-text-primary);
   --rui-text-soft: var(--rui-text-secondary);
   --rui-text-muted: var(--rui-text-tertiary);
-  --rui-accent: #34d4e8;
-  --rui-accent-strong: #13bfd5;
-  --rui-accent-soft: rgba(52, 212, 232, 0.14);
-  --rui-accent-muted: rgba(52, 212, 232, 0.08);
-  --rui-accent-border: rgba(52, 212, 232, 0.35);
-  --rui-accent-border-soft: rgba(52, 212, 232, 0.28);
-  --rui-success: #19d3a8;
-  --rui-success-soft: rgba(25, 211, 168, 0.14);
-  --rui-success-border: rgba(25, 211, 168, 0.35);
-  --rui-warning: #f0b44f;
-  --rui-warning-soft: rgba(240, 180, 79, 0.14);
-  --rui-warning-border: rgba(240, 180, 79, 0.35);
-  --rui-danger: #eb6a76;
-  --rui-danger-soft: rgba(235, 106, 118, 0.14);
-  --rui-danger-border: rgba(235, 106, 118, 0.35);
-  --rui-shadow-panel: 0 16px 36px rgba(4, 8, 26, 0.3);
-  --rui-radius-panel: 10px;
-  --rui-radius-control: 8px;
+  --rui-accent: #19c7dc;
+  --rui-accent-strong: #0fd1df;
+  --rui-accent-soft: rgba(25, 199, 220, 0.18);
+  --rui-accent-muted: rgba(25, 199, 220, 0.08);
+  --rui-accent-border: rgba(25, 199, 220, 0.45);
+  --rui-accent-border-soft: rgba(25, 199, 220, 0.35);
+  --rui-success: #17e4b6;
+  --rui-success-soft: rgba(23, 228, 182, 0.18);
+  --rui-success-border: rgba(23, 228, 182, 0.55);
+  --rui-warning: #ffb347;
+  --rui-warning-soft: rgba(255, 179, 71, 0.18);
+  --rui-warning-border: rgba(255, 179, 71, 0.55);
+  --rui-danger: #f06d78;
+  --rui-danger-soft: rgba(240, 109, 120, 0.18);
+  --rui-danger-border: rgba(240, 109, 120, 0.55);
+  --rui-shadow-panel: 0 14px 30px rgba(6, 9, 35, 0.22);
+  --rui-radius-panel: 14px;
+  --rui-radius-control: 4px;
 }
 
 @layer components {
@@ -60,7 +60,7 @@
   .rui-theme input,
   .rui-theme select,
   .rui-theme textarea {
-    font: inherit;
+    font-family: inherit;
   }
 
   .rui-panel {
@@ -78,9 +78,9 @@
   }
 
   .rui-input {
-    border: 1px solid rgba(12, 18, 33, 0.14);
+    border: 1px solid rgba(18, 22, 50, 0.28);
     background: var(--rui-bg-input);
-    color: #1c2134;
+    color: #1c1f31;
     border-radius: var(--rui-radius-control);
   }
 

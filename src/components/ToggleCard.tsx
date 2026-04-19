@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import React from 'react';
 import type { AccentKey } from '../context/AccentContext';
 import { useAccentStyle } from '../context/AccentContext';
+import { useControllableState } from '../hooks/useControllableState';
 import { cn } from '../lib/cn';
 import Switch from './Switch';
 
@@ -42,14 +43,26 @@ export function ToggleCard({
   descriptionClassName,
   helperClassName,
 }: ToggleCardProps) {
+  const [isChecked, setChecked] = useControllableState({
+    value: checked,
+    defaultValue: defaultChecked ?? false,
+    onChange: onCheckedChange,
+  });
   const accentStyle = useAccentStyle(accentKey, style);
 
   return (
     <div
       style={accentStyle}
+      onClick={(event) => {
+        if (disabled) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('button,a,input,select,textarea,label')) return;
+        setChecked((current) => !current);
+      }}
       className={cn(
-        'flex items-start justify-between gap-4 rounded-[var(--rui-radius-panel)] border border-[var(--rui-border-soft)] bg-black/10 px-4 py-3',
-        disabled && 'opacity-60',
+        'flex items-start justify-between gap-4 rounded-[var(--rui-radius-panel)] border border-[var(--rui-border-soft)] bg-black/10 px-4 py-3 transition',
+        isChecked && 'border-[var(--rui-accent-border)] bg-[var(--rui-accent-muted)]',
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-[var(--rui-accent-border-soft)]',
         className,
       )}
     >
@@ -66,9 +79,8 @@ export function ToggleCard({
       <div className="flex flex-shrink-0 items-center gap-3">
         {trailing}
         <Switch
-          checked={checked}
-          defaultChecked={defaultChecked}
-          onCheckedChange={onCheckedChange}
+          checked={isChecked}
+          onCheckedChange={setChecked}
           disabled={disabled}
           aria-label={typeof title === 'string' ? title : undefined}
         />

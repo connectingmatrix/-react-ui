@@ -212,7 +212,7 @@ export function DynamicPanel({
     onDragStart,
     onDragEnd,
     className: 'cursor-grab rounded border border-white/10 p-1 text-white/55 hover:bg-white/5 hover:text-white active:cursor-grabbing',
-    title: 'Drag panel',
+    title: 'Drag handle',
   };
   const moveHandle = allowMovement
     ? (renderMoveHandle?.({
@@ -247,7 +247,7 @@ export function DynamicPanel({
         </Button>
       ))
     : null;
-  const collapseButtonProps: React.ButtonHTMLAttributes<HTMLButtonElement> = { title: isCollapsed ? 'Restore panel' : 'Collapse panel', onClick: onToggleCollapse };
+  const collapseButtonProps: React.ButtonHTMLAttributes<HTMLButtonElement> = { title: isCollapsed ? 'Restore panel' : 'Minimize panel', onClick: onToggleCollapse };
   const collapseButton = allowCollapse
     ? (renderCollapseButton?.({
         panel,
@@ -315,14 +315,20 @@ export function DynamicPanel({
       onDragOver={onDragOver}
       onDragEnter={onDragEnter}
       onDrop={onDrop}
-      className={cn('min-w-0', !isFullscreen && 'col-span-12', !isFullscreen && widthClassMap[state.width || 'full'], isFullscreen && 'fixed inset-4 z-50', className)}
+      className={cn('min-w-0 w-full', !isFullscreen && 'col-span-12', !isFullscreen && widthClassMap[state.width || 'full'], isFullscreen && 'fixed inset-4 z-50', className)}
       style={accentStyle}
     >
-      <section className={cn('h-full overflow-hidden rounded-panel rui-panel', panel.className, isFullscreen && 'h-[calc(100vh-2rem)]')}>
+      <section className={cn('min-h-full w-full overflow-hidden rounded-panel rui-panel', panel.className, isFullscreen && 'h-[calc(100vh-2rem)]')}>
         {renderHeader ? (
           renderHeader(panel, state)
         ) : (
-          <div className={cn('flex items-start justify-between gap-3 border-b border-white/8 bg-black/10 px-4 py-4', panel.headerClassName, headerClassName)}>
+          <div
+            className={cn(
+              'flex flex-col gap-3 border-b border-white/8 bg-black/10 px-3 py-3 sm:flex-row sm:items-start sm:justify-between sm:px-4 sm:py-4',
+              panel.headerClassName,
+              headerClassName,
+            )}
+          >
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 {moveHandle}
@@ -332,11 +338,11 @@ export function DynamicPanel({
                 </div>
               </div>
             </div>
-            <div className={cn('flex shrink-0 items-center gap-2', actionsClassName)}>{panelControls}</div>
+            <div className={cn('flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end', actionsClassName)}>{panelControls}</div>
           </div>
         )}
         {!isCollapsed ? (
-          <div className={cn('min-h-0 p-5', panel.bodyClassName, bodyClassName, isFullscreen && 'h-[calc(100%-76px)] overflow-auto rui-scrollbar')}>{body}</div>
+          <div className={cn('min-h-0 p-3 sm:p-5', panel.bodyClassName, bodyClassName, isFullscreen && 'h-[calc(100%-76px)] overflow-auto rui-scrollbar')}>{body}</div>
         ) : null}
       </section>
     </div>
@@ -547,7 +553,7 @@ export function GridLayout({
   }
 
   return (
-    <div className={cn('rui-theme grid grid-cols-12 gap-5', className, draggingId && 'select-none')} style={accentStyle}>
+    <div className={cn('rui-theme grid w-full grid-cols-12 gap-3 sm:gap-5', className, draggingId && 'select-none')} style={accentStyle}>
       {items.map(renderItem)}
     </div>
   );
