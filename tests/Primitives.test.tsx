@@ -1,0 +1,342 @@
+import React from 'react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+import { AccentProvider } from '../src/context/AccentContext';
+import Banner from '../src/components/Banner';
+import Button from '../src/components/Button';
+import GridLayout from '../src/layouts/GridLayout';
+import type { GridPanelState } from '../src/layouts/GridLayout';
+import Logger from '../src/elements/Logger';
+import NotificationViewport, { Notification } from '../src/elements/NotificationViewport';
+import SelectBox from '../src/components/SelectBox';
+import NumberInput from '../src/fields/NumberInput';
+import Text from '../src/fields/Text';
+import TextArea from '../src/fields/TextArea';
+
+describe('SelectBox', () => {
+  it('supports searchable single select', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<SelectBox value={null} onChange={onChange} options={['Alpha', 'Beta']} />);
+
+    await user.click(screen.getByRole('button'));
+    await user.type(screen.getByPlaceholderText('Search options'), 'bet');
+    await user.click(screen.getByText('Beta'));
+
+    expect(onChange).toHaveBeenCalledWith('Beta');
+  });
+
+  it('associates labels and descriptions with the trigger', () => {
+    render(<SelectBox label="Mode" description="Choose an operating mode" value={null} options={['Alpha']} />);
+
+    const trigger = screen.getByLabelText('Mode');
+    expect(trigger).toHaveAttribute('aria-describedby', expect.stringContaining('description'));
+    expect(screen.getByText('Choose an operating mode')).toBeInTheDocument();
+  });
+
+  it('supports multiple selection', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<SelectBox mode="multiple" value={[]} onChange={onChange} options={['Alpha', 'Beta']} />);
+
+    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByText('Alpha'));
+
+    expect(onChange).toHaveBeenCalledWith(['Alpha']);
+  });
+
+  it('supports summary text overrides', () => {
+    render(<SelectBox mode="multiple" value={['alpha', 'beta']} options={['alpha', 'beta']} summaryText="Custom summary" />);
+
+    expect(screen.getByText('Custom summary')).toBeInTheDocument();
+  });
+
+  it('supports object values with custom keys', async () => {
+    const user = userEvent.setup();
+    const first = { id: 'one', label: 'One' };
+    const second = { id: 'two', label: 'Two' };
+    const onChange = vi.fn();
+    render(
+      <SelectBox
+        value={first}
+        onChange={onChange}
+        options={[
+          { label: 'One', value: first },
+          { label: 'Two', value: second },
+        ]}
+        getOptionKey={(option) => option.id}
+        isOptionEqual={(left, right) => left.id === right.id}
+        clearable={false}
+        renderValue={(value) => value?.label}
+      />,
+    );
+
+    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByText('Two'));
+
+    expect(onChange).toHaveBeenCalledWith(second);
+  });
+
+  it('shows multi-select menu actions', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<SelectBox mode="multiple" value={[]} onChange={onChange} options={['Alpha', 'Beta']} showSelectAll showClear />);
+
+    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByText('Select all'));
+
+    expect(onChange).toHaveBeenCalledWith(['Alpha', 'Beta']);
+  });
+});
+
+describe('AccentContext', () => {
+  it('applies provider accent tokens to components', () => {
+    render(
+      <AccentProvider accentKey="brand" accents={{ brand: { accent: '#ff00aa', bgSurface: '#101010' } }}>
+        <Button>Save</Button>
+      </AccentProvider>,
+    );
+
+    const button = screen.getByRole('button', { name: 'Save' });
+    expect(button.style.getPropertyValue('--rui-accent')).toBe('#ff00aa');
+    expect(button.style.getPropertyValue('--rui-bg-surface')).toBe('#101010');
+  });
+
+  it('uses component accent keys when no provider is present', () => {
+    render(<Button accentKey="warning">Warn</Button>);
+
+    expect(screen.getByRole('button', { name: 'Warn' }).style.getPropertyValue('--rui-accent')).toBe('#f0b44f');
+  });
+
+  it('prefers provider accent keys over component fallback keys', () => {
+    render(
+      <AccentProvider accentKey="teal">
+        <Button accentKey="danger">Scoped</Button>
+      </AccentProvider>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Scoped' }).style.getPropertyValue('--rui-accent')).toBe('#19d3a8');
+  });
+});
+
+describe('GridLayout', () => {
+  it('collapses and restores panels', async () => {
+    const user = userEvent.setup();
+    render(<GridLayout panels={[{ id: 'one', title: 'One', content: <div>Panel body</div> }]} />);
+
+    expect(screen.getByText('Panel body')).toBeInTheDocument();
+    await user.click(screen.getByTitle('Collapse panel'));
+    expect(screen.queryByText('Panel body')).not.toBeInTheDocument();
+  });
+
+  it('reorders panels with drag and drop', () => {
+    const onLayoutChange = vi.fn();
+    const data: Record<string, string> = {};
+    const dataTransfer = {
+      effectAllowed: '',
+      dropEffect: '',
+      setData: vi.fn((key: string, value: string) => {
+        data[key] = value;
+      }),
+      getData: vi.fn((key: string) => data[key] || ''),
+    };
+
+    render(
+      <GridLayout
+        onLayoutChange={onLayoutChange}
+        panels={[
+          { id: 'one', title: 'One', content: <div>One body</div> },
+          { id: 'two', title: 'Two', content: <div>Two body</div> },
+        ]}
+      />,
+    );
+
+    fireEvent.dragStart(screen.getAllByTitle('Drag panel')[0], { dataTransfer });
+    fireEvent.dragOver(screen.getByText('Two'), { dataTransfer });
+    fireEvent.drop(screen.getByText('Two'), { dataTransfer });
+
+    expect(onLayoutChange).toHaveBeenLastCalledWith([expect.objectContaining({ id: 'two', order: 0 }), expect.objectContaining({ id: 'one', order: 1 })]);
+  });
+
+  it('enters fullscreen mode', async () => {
+    const user = userEvent.setup();
+    const onLayoutChange = vi.fn();
+    render(<GridLayout onLayoutChange={onLayoutChange} panels={[{ id: 'one', title: 'One', content: <div>One body</div> }]} />);
+
+    await user.click(screen.getByTitle('Fullscreen'));
+
+    expect(screen.getByTitle('Exit fullscreen')).toBeInTheDocument();
+    expect(onLayoutChange).toHaveBeenLastCalledWith([expect.objectContaining({ id: 'one', fullscreen: true, collapsed: false })]);
+  });
+
+  it('waits for adapter persistence to hydrate before saving', async () => {
+    const save = vi.fn();
+    let resolveLoad: (layout: GridPanelState[]) => void = () => undefined;
+    const load = vi.fn(
+      () =>
+        new Promise<GridPanelState[] | null>((resolve) => {
+          resolveLoad = resolve;
+        }),
+    );
+
+    render(
+      <GridLayout
+        persistenceKey="dashboard"
+        persistenceAdapter={{ load, save }}
+        panels={[
+          { id: 'one', title: 'One', content: <div>One body</div> },
+          { id: 'two', title: 'Two', content: <div>Two body</div> },
+        ]}
+      />,
+    );
+
+    expect(save).not.toHaveBeenCalled();
+
+    resolveLoad([
+      { id: 'two', order: 0, width: 'full', collapsed: false, fullscreen: false },
+      { id: 'one', order: 1, width: 'full', collapsed: false, fullscreen: false },
+    ]);
+
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    expect(save).toHaveBeenCalledWith('dashboard', expect.arrayContaining([expect.objectContaining({ id: 'two', order: 0, width: 'full' })]));
+  });
+});
+
+describe('NotificationViewport', () => {
+  it('dismisses notifications', async () => {
+    const user = userEvent.setup();
+    const onDismiss = vi.fn();
+    render(<NotificationViewport items={[{ id: 'n1', title: 'Saved', timeout: null }]} onDismiss={onDismiss} />);
+
+    await user.click(screen.getByLabelText('Dismiss notification'));
+
+    expect(onDismiss).toHaveBeenCalledWith('n1');
+  });
+
+  it('uses a default auto-dismiss timeout when none is provided', () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    render(<NotificationViewport items={[{ id: 'n1', title: 'Saved' }]} onDismiss={onDismiss} />);
+
+    vi.advanceTimersByTime(4199);
+    expect(onDismiss).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onDismiss).toHaveBeenCalledWith('n1');
+    vi.useRealTimers();
+  });
+
+  it('is exported through the Notification alias', () => {
+    expect(Notification).toBe(NotificationViewport);
+  });
+});
+
+describe('Banner', () => {
+  it('supports custom colors without forcing a tone badge', () => {
+    render(
+      <Banner title="Draft" accentColor="#00ff99" backgroundColor="#101820" borderColor="#00ff99" textColor="#ffffff">
+        Review before saving.
+      </Banner>,
+    );
+
+    expect(screen.getByText('Draft')).toBeInTheDocument();
+    expect(screen.queryByText('info')).not.toBeInTheDocument();
+  });
+});
+
+describe('Logger', () => {
+  it('filters and expands payloads', async () => {
+    const user = userEvent.setup();
+    render(
+      <Logger
+        entries={[
+          { id: 'one', level: 'INFO', category: 'system', source: 'demo', message: 'Alpha event', payload: { ok: true }, createdAt: '2026-04-19T00:00:00Z' },
+          { id: 'two', level: 'ERROR', category: 'system', source: 'demo', message: 'Beta event', createdAt: '2026-04-19T00:00:00Z' },
+        ]}
+      />,
+    );
+
+    await user.type(screen.getByPlaceholderText('Search logs'), 'alpha');
+    expect(screen.getByText('Alpha event')).toBeInTheDocument();
+    expect(screen.queryByText('Beta event')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /view payload/i }));
+    expect(screen.getByText(/"ok": true/)).toBeInTheDocument();
+  });
+
+  it('supports controlled filters', async () => {
+    const user = userEvent.setup();
+    const onSearchChange = vi.fn();
+    render(
+      <Logger
+        search="alpha"
+        onSearchChange={onSearchChange}
+        entries={[
+          { id: 'one', level: 'INFO', category: 'system', source: 'demo', message: 'Alpha event' },
+          { id: 'two', level: 'ERROR', category: 'system', source: 'demo', message: 'Beta event' },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('Alpha event')).toBeInTheDocument();
+    expect(screen.queryByText('Beta event')).not.toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('Search logs'), 'x');
+    expect(onSearchChange).toHaveBeenCalled();
+  });
+
+  it('can hide toolbar controls and customize empty content', () => {
+    render(<Logger entries={[]} showHeader={false} showToolbar={false} emptyContent="Nothing here" />);
+
+    expect(screen.queryByPlaceholderText('Search logs')).not.toBeInTheDocument();
+    expect(screen.getByText('Nothing here')).toBeInTheDocument();
+  });
+});
+
+describe('Text', () => {
+  it('renders labels and errors', () => {
+    render(<Text label="Workspace" error="Required" />);
+    expect(screen.getByLabelText('Workspace')).toBeInTheDocument();
+    expect(screen.getByText('Required')).toBeInTheDocument();
+  });
+
+  it('renders descriptions without requiring a label', () => {
+    render(<Text description="Used in reports" placeholder="Name" />);
+    const input = screen.getByPlaceholderText('Name');
+
+    expect(screen.getByText('Used in reports')).toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('description'));
+  });
+});
+
+describe('TextArea', () => {
+  it('wires descriptions and errors to the textarea', () => {
+    render(<TextArea label="Notes" description="Visible to collaborators" error="Too short" />);
+    const textarea = screen.getByLabelText('Notes');
+
+    expect(textarea).toHaveAttribute('aria-describedby', expect.stringContaining('description'));
+    expect(textarea).toHaveAttribute('aria-describedby', expect.stringContaining('error'));
+  });
+});
+
+describe('NumberInput', () => {
+  it('preserves transitional numeric text while emitting parsed values', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const onValueChange = vi.fn();
+    render(<NumberInput label="Amount" onChange={onChange} onValueChange={onValueChange} />);
+    const input = screen.getByLabelText('Amount');
+
+    await user.type(input, '-');
+
+    expect(input).toHaveDisplayValue('-');
+    expect(onChange).toHaveBeenCalledWith(null);
+    expect(onValueChange).toHaveBeenCalledWith(null, '-');
+  });
+
+  it('renders descriptions without requiring a label', () => {
+    render(<NumberInput description="Whole units only" placeholder="10" />);
+    const input = screen.getByPlaceholderText('10');
+
+    expect(screen.getByText('Whole units only')).toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('description'));
+  });
+});

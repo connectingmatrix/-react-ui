@@ -1,0 +1,108 @@
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rui-bg-app: #0f1423;
+  --rui-bg-surface: #171d30;
+  --rui-bg-surface-2: #1d2440;
+  --rui-bg-card: #222a48;
+  --rui-bg-card-2: #262f52;
+  --rui-bg-panel: var(--rui-bg-surface);
+  --rui-bg-panel-2: var(--rui-bg-surface-2);
+  --rui-bg-input: #edf0f7;
+  --rui-border-soft: rgba(255, 255, 255, 0.08);
+  --rui-border-strong: rgba(255, 255, 255, 0.14);
+  --rui-text-primary: #f5f7ff;
+  --rui-text-secondary: #c1c8dc;
+  --rui-text-tertiary: #93a0bf;
+  --rui-text-main: var(--rui-text-primary);
+  --rui-text-soft: var(--rui-text-secondary);
+  --rui-text-muted: var(--rui-text-tertiary);
+  --rui-accent: #34d4e8;
+  --rui-accent-strong: #13bfd5;
+  --rui-accent-soft: rgba(52, 212, 232, 0.14);
+  --rui-accent-muted: rgba(52, 212, 232, 0.08);
+  --rui-accent-border: rgba(52, 212, 232, 0.35);
+  --rui-accent-border-soft: rgba(52, 212, 232, 0.28);
+  --rui-success: #19d3a8;
+  --rui-success-soft: rgba(25, 211, 168, 0.14);
+  --rui-success-border: rgba(25, 211, 168, 0.35);
+  --rui-warning: #f0b44f;
+  --rui-warning-soft: rgba(240, 180, 79, 0.14);
+  --rui-warning-border: rgba(240, 180, 79, 0.35);
+  --rui-danger: #eb6a76;
+  --rui-danger-soft: rgba(235, 106, 118, 0.14);
+  --rui-danger-border: rgba(235, 106, 118, 0.35);
+  --rui-shadow-panel: 0 16px 36px rgba(4, 8, 26, 0.3);
+  --rui-radius-panel: 10px;
+  --rui-radius-control: 8px;
+}
+
+@layer components {
+  .rui-theme {
+    color: var(--rui-text-primary);
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      sans-serif;
+  }
+
+  .rui-theme,
+  .rui-theme * {
+    box-sizing: border-box;
+  }
+
+  .rui-theme button,
+  .rui-theme input,
+  .rui-theme select,
+  .rui-theme textarea {
+    font: inherit;
+  }
+
+  .rui-panel {
+    border: 1px solid var(--rui-border-soft);
+    background: var(--rui-bg-surface);
+    box-shadow: var(--rui-shadow-panel);
+    border-radius: var(--rui-radius-panel);
+  }
+
+  .rui-card {
+    border: 1px solid var(--rui-border-soft);
+    background: linear-gradient(180deg, var(--rui-bg-surface-2), var(--rui-bg-card));
+    box-shadow: var(--rui-shadow-panel);
+    border-radius: var(--rui-radius-panel);
+  }
+
+  .rui-input {
+    border: 1px solid rgba(12, 18, 33, 0.14);
+    background: var(--rui-bg-input);
+    color: #1c2134;
+    border-radius: var(--rui-radius-control);
+  }
+
+  .rui-input:focus {
+    border-color: var(--rui-accent);
+  }
+
+  .rui-scrollbar {
+    scrollbar-color: rgba(255, 255, 255, 0.16) rgba(10, 12, 32, 0.2);
+  }
+
+  .rui-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .rui-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+  }
+
+  .rui-scrollbar::-webkit-scrollbar-track {
+    background: rgba(10, 12, 32, 0.2);
+  }
+}
