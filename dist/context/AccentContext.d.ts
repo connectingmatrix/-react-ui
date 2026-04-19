@@ -20,6 +20,9 @@ export interface AccentTokens {
     accentMuted?: string;
     accentBorder?: string;
     accentBorderSoft?: string;
+    accentContrast?: string;
+    accentSoftText?: string;
+    accentOutlineText?: string;
     success?: string;
     successSoft?: string;
     successBorder?: string;
@@ -73,6 +76,9 @@ export declare function useAccent(accentKey?: AccentKey, tokens?: AccentTokens):
         accentMuted: string;
         accentBorder: string;
         accentBorderSoft: string;
+        accentContrast: string;
+        accentSoftText: string;
+        accentOutlineText: string;
         success: string;
         successSoft: string;
         successBorder: string;

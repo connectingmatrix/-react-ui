@@ -24,6 +24,9 @@
   --rui-accent-muted: rgba(25, 199, 220, 0.08);
   --rui-accent-border: rgba(25, 199, 220, 0.45);
   --rui-accent-border-soft: rgba(25, 199, 220, 0.35);
+  --rui-accent-contrast: #ffffff;
+  --rui-accent-soft-text: #ffffff;
+  --rui-accent-outline-text: #ffffff;
   --rui-success: #17e4b6;
   --rui-success-soft: rgba(23, 228, 182, 0.18);
   --rui-success-border: rgba(23, 228, 182, 0.55);
@@ -52,15 +55,28 @@
   }
 
   .rui-theme,
-  .rui-theme * {
+  .rui-theme :where(*) {
     box-sizing: border-box;
   }
 
-  .rui-theme button,
-  .rui-theme input,
-  .rui-theme select,
-  .rui-theme textarea {
-    font-family: inherit;
+  .rui-theme,
+  .rui-theme :where(*) {
+    border-style: solid;
+    border-color: var(--rui-border-soft);
+  }
+
+  .rui-theme :where(*) {
+    border-width: 0;
+  }
+
+  .rui-theme :where(button, input, select, textarea) {
+    font: inherit;
+  }
+
+  .rui-theme :where(button) {
+    appearance: none;
+    background: transparent;
+    color: inherit;
   }
 
   .rui-panel {

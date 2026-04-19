@@ -20,15 +20,21 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'border border-[var(--rui-accent)] bg-[var(--rui-accent)] text-white hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
-  secondary: 'border border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-white hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
-  outline: 'border border-[var(--rui-accent)] bg-transparent text-white hover:bg-white/5 focus-visible:ring-[var(--rui-accent)]',
-  ghost: 'border border-white/10 bg-transparent text-[var(--rui-text-secondary)] hover:bg-white/5 hover:text-white focus-visible:ring-white/30',
-  danger: 'border border-[var(--rui-danger-border)] bg-[var(--rui-danger-soft)] text-white hover:bg-[var(--rui-danger-soft)] focus-visible:ring-[var(--rui-danger)]',
-  success: 'border border-[var(--rui-success-border)] bg-[var(--rui-success-soft)] text-white hover:bg-[var(--rui-success-soft)] focus-visible:ring-[var(--rui-success)]',
-  warning: 'border border-[var(--rui-warning-border)] bg-[var(--rui-warning-soft)] text-white hover:bg-[var(--rui-warning-soft)] focus-visible:ring-[var(--rui-warning)]',
-  subtle: 'border border-white/10 bg-white/5 text-white hover:bg-white/10 focus-visible:ring-[var(--rui-accent)]',
-  icon: 'border border-white/10 bg-transparent text-[var(--rui-text-secondary)] hover:bg-white/5 hover:text-white focus-visible:ring-white/30',
+  primary: 'border border-[var(--rui-accent)] bg-[var(--rui-accent)] text-[var(--rui-accent-contrast)] hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
+  secondary:
+    'border border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-[var(--rui-accent-soft-text)] hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
+  outline: 'border border-[var(--rui-accent)] bg-transparent text-[var(--rui-accent-outline-text)] hover:bg-[var(--rui-accent-muted)] focus-visible:ring-[var(--rui-accent)]',
+  ghost:
+    'border border-[var(--rui-border-soft)] bg-transparent text-[var(--rui-text-secondary)] hover:bg-[var(--rui-accent-muted)] hover:text-[var(--rui-text-primary)] focus-visible:ring-[var(--rui-accent)]',
+  danger:
+    'border border-[var(--rui-danger-border)] bg-[var(--rui-danger-soft)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-danger-soft)] focus-visible:ring-[var(--rui-danger)]',
+  success:
+    'border border-[var(--rui-success-border)] bg-[var(--rui-success-soft)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-success-soft)] focus-visible:ring-[var(--rui-success)]',
+  warning:
+    'border border-[var(--rui-warning-border)] bg-[var(--rui-warning-soft)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-warning-soft)] focus-visible:ring-[var(--rui-warning)]',
+  subtle: 'border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-accent-muted)] focus-visible:ring-[var(--rui-accent)]',
+  icon:
+    'border border-[var(--rui-border-soft)] bg-transparent text-[var(--rui-text-secondary)] hover:bg-[var(--rui-accent-muted)] hover:text-[var(--rui-text-primary)] focus-visible:ring-[var(--rui-accent)]',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

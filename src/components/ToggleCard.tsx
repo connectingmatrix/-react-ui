@@ -60,7 +60,7 @@ export function ToggleCard({
         setChecked((current) => !current);
       }}
       className={cn(
-        'flex items-start justify-between gap-4 rounded-[var(--rui-radius-panel)] border border-[var(--rui-border-soft)] bg-black/10 px-4 py-3 transition',
+        'flex items-start justify-between gap-4 rounded-[var(--rui-radius-panel)] border border-[var(--rui-border-soft)] bg-[var(--rui-accent-muted)] px-4 py-3 transition',
         isChecked && 'border-[var(--rui-accent-border)] bg-[var(--rui-accent-muted)]',
         disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-[var(--rui-accent-border-soft)]',
         className,
@@ -70,7 +70,7 @@ export function ToggleCard({
         <div className="flex items-start gap-3">
           {leading ? <div className="mt-0.5 flex-shrink-0 text-[var(--rui-text-secondary)]">{leading}</div> : null}
           <div className="min-w-0">
-            {title ? <div className={cn('text-sm font-medium text-white', titleClassName)}>{title}</div> : null}
+            {title ? <div className={cn('text-sm font-medium text-[var(--rui-text-primary)]', titleClassName)}>{title}</div> : null}
             {description ? <div className={cn('mt-1 text-xs text-[var(--rui-text-secondary)]', descriptionClassName)}>{description}</div> : null}
             {helper ? <div className={cn('mt-2 text-xs text-[var(--rui-text-tertiary)]', helperClassName)}>{helper}</div> : null}
           </div>

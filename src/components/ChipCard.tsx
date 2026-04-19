@@ -72,7 +72,7 @@ export function ChipCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               {title ? <div className={cn('text-xs uppercase tracking-[0.18em] text-[var(--rui-text-tertiary)]', titleClassName)}>{title}</div> : null}
-              {value ? <div className={cn('mt-2 text-2xl font-semibold text-white', valueClassName)}>{value}</div> : null}
+              {value ? <div className={cn('mt-2 text-2xl font-semibold text-[var(--rui-text-primary)]', valueClassName)}>{value}</div> : null}
             </div>
             {trailing ? <div className="flex-shrink-0">{trailing}</div> : null}
           </div>
@@ -99,7 +99,7 @@ export function ChipCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             {title ? <div className={cn('text-xs uppercase tracking-[0.18em] text-[var(--rui-text-tertiary)]', titleClassName)}>{title}</div> : null}
-            {value ? <div className={cn('mt-2 text-2xl font-semibold text-white', valueClassName)}>{value}</div> : null}
+            {value ? <div className={cn('mt-2 text-2xl font-semibold text-[var(--rui-text-primary)]', valueClassName)}>{value}</div> : null}
           </div>
           {trailing ? <div className="flex-shrink-0">{trailing}</div> : null}
         </div>

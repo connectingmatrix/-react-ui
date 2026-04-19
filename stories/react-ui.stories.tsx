@@ -29,7 +29,6 @@ import {
   type NotificationItem,
   type TableColumn,
 } from '../src/index';
-import '../src/styles.css';
 
 const meta: Meta = {
   title: 'React UI/System',
@@ -83,6 +82,12 @@ const accents: AccentChoice[] = [
   { key: 'warning', label: 'Warning', description: 'Review and caution flows' },
   { key: 'danger', label: 'Danger', description: 'Critical or destructive flows' },
   { key: 'neutral', label: 'Neutral', description: 'Low-emphasis admin views' },
+  { key: 'tailadmin', label: 'TailAdmin', description: 'Light brand-blue admin surfaces' },
+  { key: 'light-blue', label: 'Light Blue', description: 'Light informational surfaces' },
+  { key: 'light-success', label: 'Light Success', description: 'Light positive surfaces' },
+  { key: 'light-warning', label: 'Light Warning', description: 'Light caution surfaces' },
+  { key: 'light-danger', label: 'Light Danger', description: 'Light destructive surfaces' },
+  { key: 'light-neutral', label: 'Light Neutral', description: 'Light gray admin surfaces' },
 ];
 
 const teamOptions = [
@@ -316,7 +321,7 @@ function AccentFrame({ accent, children }: { accent: AccentChoice; children: Rea
       <Card className="h-full" contentClassName="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold text-white">{accent.label}</div>
+            <div className="text-sm font-semibold text-[var(--rui-text-primary)]">{accent.label}</div>
             <div className="mt-1 text-xs text-[var(--rui-text-secondary)]">{accent.description}</div>
           </div>
           <span className="mt-1 h-3 w-3 rounded-full bg-[var(--rui-accent)] shadow-[0_0_0_4px_var(--rui-accent-muted)]" />
@@ -731,7 +736,7 @@ export const AccentOverview: Story = {
               <div className="grid gap-3 md:grid-cols-2">
                 <ChipCard title="Metric" value="128" helper="ChipCard default tone is accent" />
                 <Card padded="sm">
-                  <div className="text-sm font-semibold text-white">Card</div>
+                  <div className="text-sm font-semibold text-[var(--rui-text-primary)]">Card</div>
                   <div className="mt-1 text-xs text-[var(--rui-text-secondary)]">Plain reusable surface.</div>
                 </Card>
               </div>

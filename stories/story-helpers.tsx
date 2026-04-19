@@ -21,6 +21,12 @@ export const accentChoices: Array<{ key: AccentKey; label: string; description: 
   { key: 'warning', label: 'Warning', description: 'Review and caution states' },
   { key: 'danger', label: 'Danger', description: 'Critical and destructive states' },
   { key: 'neutral', label: 'Neutral', description: 'Quiet administrative states' },
+  { key: 'tailadmin', label: 'TailAdmin', description: 'Light brand blue surfaces' },
+  { key: 'light-blue', label: 'Light Blue', description: 'Light informational surfaces' },
+  { key: 'light-success', label: 'Light Success', description: 'Light positive surfaces' },
+  { key: 'light-warning', label: 'Light Warning', description: 'Light caution surfaces' },
+  { key: 'light-danger', label: 'Light Danger', description: 'Light critical surfaces' },
+  { key: 'light-neutral', label: 'Light Neutral', description: 'Light gray admin surfaces' },
 ];
 
 export function StoryShell({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
@@ -30,12 +36,12 @@ export function StoryShell({ title, description, children }: { title: string; de
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <Badge>Storybook coverage</Badge>
-            <h1 className="mt-3 text-3xl font-semibold text-white">{title}</h1>
+            <h1 className="mt-3 text-3xl font-semibold text-[var(--rui-text-primary)]">{title}</h1>
             <p className="mt-2 max-w-4xl text-sm leading-6 text-[var(--rui-text-secondary)]">{description}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {accentChoices.map((accent) => (
-              <span key={accent.key} className="rounded-full border border-[var(--rui-border-soft)] bg-white/[0.04] px-3 py-1 text-xs text-[var(--rui-text-secondary)]">
+              <span key={accent.key} className="rounded-full border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] px-3 py-1 text-xs text-[var(--rui-text-secondary)]">
                 {accent.label}
               </span>
             ))}
@@ -63,56 +69,14 @@ export function CaseCard({ storyCase }: { storyCase: StoryCase }) {
       <Card className="h-full" contentClassName="flex h-full flex-col gap-4">
         <div>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-base font-semibold text-white">{storyCase.title}</h2>
+            <h2 className="text-base font-semibold text-[var(--rui-text-primary)]">{storyCase.title}</h2>
             <span className="h-3 w-3 rounded-full bg-[var(--rui-accent)] shadow-[0_0_0_4px_var(--rui-accent-muted)]" />
           </div>
           <p className="mt-1 text-sm leading-6 text-[var(--rui-text-secondary)]">{storyCase.description}</p>
         </div>
         <div className="rounded-[10px] border border-white/8 bg-black/10 p-3">{storyCase.render}</div>
-        <PropsUsage props={storyCase.props} />
       </Card>
     </AccentProvider>
-  );
-}
-
-export function PropsUsage({ props }: { props: PropUsage[] }) {
-  return (
-    <div className="mt-auto rounded-[10px] border border-white/8 bg-[#070b18] p-3">
-      <div className="mb-2 text-xs uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">Props usage</div>
-      <div className="space-y-2">
-        {props.map((prop) => (
-          <div key={`${prop.name}-${prop.value}`} className="grid gap-2 text-xs md:grid-cols-[140px_minmax(0,1fr)]">
-            <code className="text-[var(--rui-accent)]">{prop.name}</code>
-            <div className="min-w-0">
-              <code className="break-words text-white/80">{prop.value}</code>
-              {prop.note ? <div className="mt-1 text-[var(--rui-text-tertiary)]">{prop.note}</div> : null}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function CodeSnippet({ code }: { code: string }) {
-  return (
-    <div className="rounded-[10px] border border-white/8 bg-[#050816]">
-      <div className="border-b border-white/8 px-3 py-2 text-xs uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">Copyable usage snippet</div>
-      <pre className="max-h-[420px] overflow-auto p-3 text-[11px] leading-5 text-white/75">
-        <code>{code.trim()}</code>
-      </pre>
-    </div>
-  );
-}
-
-export function LiveProps({ value }: { value: Record<string, unknown> }) {
-  return (
-    <div className="rounded-[10px] border border-[var(--rui-accent-border)] bg-[var(--rui-accent-muted)] p-3">
-      <div className="mb-2 text-xs uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">Updated props / state</div>
-      <pre className="overflow-auto text-[11px] leading-5 text-white/80">
-        <code>{JSON.stringify(value, null, 2)}</code>
-      </pre>
-    </div>
   );
 }
 

@@ -16,7 +16,7 @@ const toneClasses: Record<BadgeTone, string> = {
   success: 'border-[var(--rui-success-border)] bg-[var(--rui-success-soft)] text-[var(--rui-success)]',
   warning: 'border-[var(--rui-warning-border)] bg-[var(--rui-warning-soft)] text-[var(--rui-warning)]',
   danger: 'border-[var(--rui-danger-border)] bg-[var(--rui-danger-soft)] text-[var(--rui-danger)]',
-  info: 'border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-white',
+  info: 'border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-[var(--rui-accent-soft-text)]',
 };
 
 export function Badge({ children, tone = 'accent', className, accentKey, style, ...props }: BadgeProps) {

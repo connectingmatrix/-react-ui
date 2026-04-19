@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 import { Badge, DateTimeSelector, Icon, Number as NumberAlias, NumberInput, Text, TextArea } from '../src/index';
-import '../src/styles.css';
 import { CaseGrid, Section, StoryShell, type StoryCase } from './story-helpers';
 
 const meta: Meta = {

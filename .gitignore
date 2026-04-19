@@ -5,4 +5,4 @@ storybook-static
 coverage
 .pnp.*
 .yarn/
-yarn.lock
+package-lock.json

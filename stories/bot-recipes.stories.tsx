@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { expect, fn, userEvent, within } from '@storybook/test';
 import React, { useMemo, useState } from 'react';
 import {
   AccentProvider,
@@ -23,19 +24,60 @@ import {
   Text,
   TextArea,
   ToggleCard,
+  type AccentKey,
   type GridPanelState,
   type LoggerEntry,
   type SidebarItem,
   type TableColumn,
   type TableState,
 } from '../src/index';
-import '../src/styles.css';
-import { CodeSnippet, LiveProps, StoryShell, formatDateTime, formatMoney, signedTone } from './story-helpers';
+import botRecipesStorySource from './bot-recipes.stories.tsx?raw';
+import { formatDateTime, formatMoney, signedTone } from './story-helpers';
 
-const meta: Meta = {
-  title: 'Binance Bot UI/Copyable Recipes',
+interface RecipeStoryArgs {
+  accentKey: AccentKey;
+  activeBotName: string;
+  initialSearch: string;
+  showMetricCards: boolean;
+  onRefresh: (...payload: unknown[]) => void;
+  onExport: (...payload: unknown[]) => void;
+  onFieldChange: (...payload: unknown[]) => void;
+  onSelectionChange: (...payload: unknown[]) => void;
+  onTableStateChange: (...payload: unknown[]) => void;
+  onRunAction: (...payload: unknown[]) => void;
+}
+
+const accentOptions: AccentKey[] = ['default', 'teal', 'warning', 'danger', 'neutral', 'tailadmin', 'light-blue', 'light-success', 'light-warning', 'light-danger', 'light-neutral'];
+
+const meta: Meta<RecipeStoryArgs> = {
+  title: 'Binance Bot UI/Recipes',
+  args: {
+    accentKey: 'default',
+    activeBotName: 'CC Bot',
+    initialSearch: '',
+    showMetricCards: true,
+    onRefresh: fn(),
+    onExport: fn(),
+    onFieldChange: fn(),
+    onSelectionChange: fn(),
+    onTableStateChange: fn(),
+    onRunAction: fn(),
+  },
+  argTypes: {
+    accentKey: { control: 'select', options: accentOptions },
+    activeBotName: { control: 'text' },
+    initialSearch: { control: 'text' },
+    showMetricCards: { control: 'boolean' },
+    onRefresh: { table: { category: 'Actions' } },
+    onExport: { table: { category: 'Actions' } },
+    onFieldChange: { table: { category: 'Actions' } },
+    onSelectionChange: { table: { category: 'Actions' } },
+    onTableStateChange: { table: { category: 'Actions' } },
+    onRunAction: { table: { category: 'Actions' } },
+  },
   parameters: {
     layout: 'fullscreen',
+    actions: { argTypesRegex: '^on.*' },
     docs: {
       description: {
         component:
@@ -47,7 +89,7 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj;
+type Story = StoryObj<RecipeStoryArgs>;
 type AnyRow = Record<string, any>;
 
 const botRows = [
@@ -477,20 +519,92 @@ const logEntries: LoggerEntry[] = [
   },
 ];
 
-function Recipe({ title, description, children, code, state }: { title: string; description: string; children: React.ReactNode; code: string; state: Record<string, unknown> }) {
+interface RecipeProps {
+  accentKey?: AccentKey;
+  children: React.ReactNode;
+}
+
+function Recipe({ children, accentKey = 'default' }: RecipeProps) {
   return (
-    <StoryShell title={title} description={description}>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card padded="none" className="overflow-hidden">
-          {children}
-        </Card>
-        <div className="space-y-4">
-          <LiveProps value={state} />
-          <CodeSnippet code={code} />
-        </div>
-      </div>
-    </StoryShell>
+    <AccentProvider accentKey={accentKey} className="min-h-screen bg-[var(--rui-bg-app)] text-[var(--rui-text-primary)]">
+      {children}
+    </AccentProvider>
   );
+}
+
+function sourceParameters(code: string, description: string) {
+  return {
+    docs: {
+      description: {
+        story: description,
+      },
+      source: {
+        code: code.trim(),
+        language: 'tsx',
+        type: 'code',
+      },
+      canvas: {
+        sourceState: 'shown',
+      },
+    },
+  };
+}
+
+const recipeSourceImports = `import React, { useMemo, useState } from 'react';
+import {
+  AccentProvider,
+  Badge,
+  Banner,
+  Button,
+  Card,
+  ChipCard,
+  DateTimeSelector,
+  GridLayout,
+  Icon,
+  Logger,
+  NumberInput,
+  Page,
+  PageContainer,
+  PageHeader,
+  RadioCard,
+  SelectBox,
+  Sidebar,
+  Switch,
+  Table,
+  Text,
+  TextArea,
+  ToggleCard,
+  type AccentKey,
+  type GridPanelState,
+  type LoggerEntry,
+  type SidebarItem,
+  type TableColumn,
+  type TableState,
+} from '@react/ui';
+import '@react/ui/styles.css';`;
+
+function extractFunctionSource(functionName: string) {
+  const signatureIndex = botRecipesStorySource.indexOf(`function ${functionName}`);
+  if (signatureIndex < 0) return `function ${functionName}() {\n  // Source unavailable.\n}`;
+
+  const bodyStart = botRecipesStorySource.indexOf('{', signatureIndex);
+  if (bodyStart < 0) return botRecipesStorySource.slice(signatureIndex).trim();
+
+  let depth = 0;
+  for (let index = bodyStart; index < botRecipesStorySource.length; index += 1) {
+    const char = botRecipesStorySource[index];
+    if (char === '{') depth += 1;
+    if (char === '}') depth -= 1;
+    if (depth === 0) return botRecipesStorySource.slice(signatureIndex, index + 1).trim();
+  }
+
+  return botRecipesStorySource.slice(signatureIndex).trim();
+}
+
+function recipeCode(functionName: string) {
+  return `${recipeSourceImports}
+
+${extractFunctionSource(functionName)}`;
 }
 
 function pctCell(value: number) {
@@ -562,43 +676,14 @@ function lifecycleColumns(): TableColumn<AnyRow>[] {
   ];
 }
 
-const tradeRecipeSnippet = `
-import { Button, DateTimeSelector, Icon, SelectBox, Table, Text } from '@react/ui';
-import '@react/ui/styles.css';
-
-<Table
-  tableId="trade-history"
-  rows={filteredTrades}
-  columns={tradeColumns}
-  rowKey={(row) => row.id}
-  searchable={false}
-  selection={{ mode: 'multi', selectedKeys, onChange: setSelectedKeys }}
-  renderSelectionActions={({ selectedRows }) => (
-    <Button size="sm" variant="secondary">Export {selectedRows.length}</Button>
-  )}
-  renderHeaderFilters={() => (
-    <>
-      <Text value={search} onChange={setSearch} placeholder="Search by symbol, bot, or decision source" />
-      <DateTimeSelector type="datetime-local" value={dateFrom} onChange={setDateFrom} />
-      <DateTimeSelector type="datetime-local" value={dateTo} onChange={setDateTo} />
-      <SelectBox mode="multiple" value={botIds} onChange={setBotIds} options={botOptions} placeholder="All bots" />
-      <Button variant="ghost" className="w-9 px-0" aria-label="Refresh trades" leftIcon={<Icon name="refresh" />}>
-        <span className="sr-only">Refresh trades</span>
-      </Button>
-    </>
-  )}
-  renderExpandedContent={(row) => <LifecycleTable rows={row.lifecycleRows} />}
-/>
-`;
-
-function TradeHistoryRecipe() {
-  const [search, setSearch] = useState('');
+function TradeHistoryRecipe(args: RecipeStoryArgs) {
+  const [search, setSearch] = useState(args.initialSearch);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [botIds, setBotIds] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [expandedRowIds, setExpandedRowIds] = useState<string[]>(['trade-pixel-closed-1']);
-  const [tableState, setTableState] = useState<TableState | null>(null);
+  const [, setTableState] = useState<TableState | null>(null);
   const botOptions = botRows.map((bot) => ({ label: bot.name, value: bot.id, keywords: `${bot.mode} ${bot.status}` }));
   const filteredTrades = useMemo(() => {
     const normalized = search.trim().toLowerCase();
@@ -613,34 +698,39 @@ function TradeHistoryRecipe() {
   }, [botIds, dateFrom, dateTo, search]);
 
   return (
-    <Recipe
-      title="Trade History Screen Recipe"
-      description="Rendered from current UI table rows: sortable trade table, bot/date filters, bulk actions, and an expanded nested lifecycle table."
-      code={tradeRecipeSnippet}
-      state={{ search, dateFrom, dateTo, botIds, selectedKeys, expandedRowIds, sort: tableState?.sort ?? null, visibleColumnIds: tableState?.visibleColumnIds ?? [] }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <PageHeader
           title="Trade history"
           description="Review closed trade performance with lifecycle context and exportable filters."
           actions={
             <>
-              <Button variant="outline" size="sm" leftIcon={<Icon name="download" className="h-4 w-4" />}>
+              <Button variant="outline" size="sm" leftIcon={<Icon name="download" className="h-4 w-4" />} onClick={() => args.onExport('trade-history')}>
                 Export CSV
               </Button>
-              <Button variant="ghost" size="sm" className="w-9 px-0" title="Refresh trades" aria-label="Refresh trades" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-9 px-0"
+                title="Refresh trades"
+                aria-label="Refresh trades"
+                leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+                onClick={() => args.onRefresh('trade-history')}
+              >
                 <span className="sr-only">Refresh trades</span>
               </Button>
             </>
           }
         />
-        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
-          <ChipCard title="Net PnL" value="-$45.69" helper="After $2.516245 fees" tone="danger" />
-          <ChipCard title="Gross before fees" value="-$43.18" helper="Across all closed trades" tone="danger" />
-          <ChipCard title="Fees paid" value="$2.516245" helper="Exchange fees" tone="neutral" />
-          <ChipCard title="Win rate" value="33.33%" helper="Closed winners" tone="warning" />
-          <ChipCard title="Closed trades" value="69" helper="All 3 bots" tone="accent" />
-        </div>
+        {args.showMetricCards ? (
+          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+            <ChipCard title="Net PnL" value="-$45.69" helper="After $2.516245 fees" tone="danger" />
+            <ChipCard title="Gross before fees" value="-$43.18" helper="Across all closed trades" tone="danger" />
+            <ChipCard title="Fees paid" value="$2.516245" helper="Exchange fees" tone="neutral" />
+            <ChipCard title="Win rate" value="33.33%" helper="Closed winners" tone="warning" />
+            <ChipCard title="Closed trades" value="69" helper="All 3 bots" tone="accent" />
+          </div>
+        ) : null}
         <Card contentClassName="space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -655,13 +745,31 @@ function TradeHistoryRecipe() {
             columns={tradeColumns()}
             rowKey={(row) => row.id}
             searchable={false}
-            selection={{ mode: 'multi', selectedKeys, onChange: setSelectedKeys }}
+            selection={{
+              mode: 'multi',
+              selectedKeys,
+              onChange: (keys, rows) => {
+                setSelectedKeys(keys);
+                args.onSelectionChange('trade-history', { selectedKeys: keys, selectedRows: rows.map((row) => row.id) });
+              },
+            }}
             expandedRowIds={expandedRowIds}
-            onExpandedChange={setExpandedRowIds}
-            onStateChange={setTableState}
+            onExpandedChange={(rowIds) => {
+              setExpandedRowIds(rowIds);
+              args.onFieldChange('trade-history.expandedRowIds', rowIds);
+            }}
+            onStateChange={(state) => {
+              setTableState(state);
+              args.onTableStateChange('trade-history', { sort: state.sort, filters: state.filters, globalSearch: state.globalSearch });
+            }}
             renderSelectionActions={({ selectedRows, clearSelection }) => (
               <>
-                <Button size="sm" variant="secondary" leftIcon={<Icon name="download" className="h-4 w-4" />}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={<Icon name="download" className="h-4 w-4" />}
+                  onClick={() => args.onExport('trade-history-selected', selectedRows.length)}
+                >
                   Export {selectedRows.length}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={clearSelection}>
@@ -671,11 +779,51 @@ function TradeHistoryRecipe() {
             )}
             renderHeaderFilters={() => (
               <>
-                <Text value={search} onChange={setSearch} placeholder="Search by symbol, bot, or decision source" className="w-full min-w-[280px] xl:w-[360px]" />
-                <DateTimeSelector type="datetime-local" value={dateFrom} onChange={setDateFrom} className="w-full sm:w-[210px]" />
-                <DateTimeSelector type="datetime-local" value={dateTo} onChange={setDateTo} className="w-full sm:w-[210px]" />
-                <SelectBox mode="multiple" value={botIds} onChange={setBotIds} options={botOptions} placeholder="All bots" className="w-full sm:w-[230px]" showClear />
-                <Button variant="outline" size="sm" leftIcon={<Icon name="download" className="h-4 w-4" />}>
+                <Text
+                  value={search}
+                  onChange={(value) => {
+                    setSearch(value);
+                    args.onFieldChange('trade-history.search', value);
+                  }}
+                  placeholder="Search by symbol, bot, or decision source"
+                  className="w-full min-w-[280px] xl:w-[360px]"
+                />
+                <DateTimeSelector
+                  type="datetime-local"
+                  value={dateFrom}
+                  onChange={(value) => {
+                    setDateFrom(value);
+                    args.onFieldChange('trade-history.dateFrom', value);
+                  }}
+                  className="w-full sm:w-[210px]"
+                />
+                <DateTimeSelector
+                  type="datetime-local"
+                  value={dateTo}
+                  onChange={(value) => {
+                    setDateTo(value);
+                    args.onFieldChange('trade-history.dateTo', value);
+                  }}
+                  className="w-full sm:w-[210px]"
+                />
+                <SelectBox
+                  mode="multiple"
+                  value={botIds}
+                  onChange={(value) => {
+                    setBotIds(value);
+                    args.onFieldChange('trade-history.botIds', value);
+                  }}
+                  options={botOptions}
+                  placeholder="All bots"
+                  className="w-full sm:w-[230px]"
+                  showClear
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<Icon name="download" className="h-4 w-4" />}
+                  onClick={() => args.onExport('trade-history-filtered', filteredTrades.length)}
+                >
                   Export CSV
                 </Button>
               </>
@@ -703,22 +851,8 @@ function TradeHistoryRecipe() {
   );
 }
 
-const botOverviewSnippet = `
-import { Badge, Button, ChipCard, Icon, Switch, Table } from '@react/ui';
-import '@react/ui/styles.css';
-
-<Table
-  tableId="bots-overview"
-  rows={bots}
-  columns={botColumns}
-  rowKey={(bot) => bot.id}
-  selection={{ mode: 'multi', selectedKeys, onChange: setSelectedKeys }}
-  renderSelectionActions={({ selectedRows }) => <Button>Start {selectedRows.length}</Button>}
-/>
-`;
-
-function BotOverviewRecipe() {
-  const [activeBotId, setActiveBotId] = useState(botRows[0].id);
+function BotOverviewRecipe(args: RecipeStoryArgs) {
+  const [activeBotId, setActiveBotId] = useState(botRows.find((bot) => bot.name === args.activeBotName)?.id ?? botRows[0].id);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([botRows[1].id]);
   const [assistantById, setAssistantById] = useState<Record<string, boolean>>(() => Object.fromEntries(botRows.map((bot) => [bot.id, bot.assistantEnabled])));
   const [trainerById, setTrainerById] = useState<Record<string, boolean>>(() => Object.fromEntries(botRows.map((bot) => [bot.id, bot.trainerEnabled])));
@@ -729,7 +863,14 @@ function BotOverviewRecipe() {
       kind: 'text',
       width: 180,
       renderCell: (bot) => (
-        <button type="button" className="font-semibold text-white hover:text-[var(--rui-accent)]" onClick={() => setActiveBotId(bot.id)}>
+        <button
+          type="button"
+          className="font-semibold text-white hover:text-[var(--rui-accent)]"
+          onClick={() => {
+            setActiveBotId(bot.id);
+            args.onFieldChange('bots.activeBotId', bot.id);
+          }}
+        >
           {bot.name}
         </button>
       ),
@@ -752,7 +893,10 @@ function BotOverviewRecipe() {
       renderCell: (bot) => (
         <Switch
           checked={assistantById[bot.id]}
-          onCheckedChange={(checked) => setAssistantById((current) => ({ ...current, [bot.id]: checked }))}
+          onCheckedChange={(checked) => {
+            setAssistantById((current) => ({ ...current, [bot.id]: checked }));
+            args.onFieldChange('bots.assistantEnabled', { botId: bot.id, checked });
+          }}
           aria-label={`${bot.name} assistant`}
         />
       ),
@@ -763,7 +907,14 @@ function BotOverviewRecipe() {
       kind: 'boolean',
       width: 120,
       renderCell: (bot) => (
-        <Switch checked={trainerById[bot.id]} onCheckedChange={(checked) => setTrainerById((current) => ({ ...current, [bot.id]: checked }))} aria-label={`${bot.name} trainer`} />
+        <Switch
+          checked={trainerById[bot.id]}
+          onCheckedChange={(checked) => {
+            setTrainerById((current) => ({ ...current, [bot.id]: checked }));
+            args.onFieldChange('bots.trainerEnabled', { botId: bot.id, checked });
+          }}
+          aria-label={`${bot.name} trainer`}
+        />
       ),
     },
     { id: 'updatedAt', label: 'Updated', kind: 'datetime', width: 172, renderCell: (bot) => <span className="text-white/65">{formatDateTime(bot.updatedAt)}</span> },
@@ -775,10 +926,17 @@ function BotOverviewRecipe() {
       width: 260,
       renderCell: (bot) => (
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setActiveBotId(bot.id)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setActiveBotId(bot.id);
+              args.onRunAction('open-dashboard', bot.id);
+            }}
+          >
             Dashboard
           </Button>
-          <Button size="sm" variant="ghost">
+          <Button size="sm" variant="ghost" onClick={() => args.onRunAction('open-logs', bot.id)}>
             Logs
           </Button>
         </div>
@@ -787,22 +945,24 @@ function BotOverviewRecipe() {
   ];
 
   return (
-    <Recipe
-      title="Bots Overview Screen Recipe"
-      description="Bot overview cards, direct @react/ui switches, a selectable table, and an icon-only refresh button aligned like the old UI."
-      code={botOverviewSnippet}
-      state={{ activeBotId, selectedKeys, assistantById, trainerById }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <PageHeader
           title="Bots"
           description="Create, inspect, and operate configured bots."
           actions={
             <>
-              <Button size="sm" leftIcon={<Icon name="plus" className="h-4 w-4" />}>
+              <Button size="sm" leftIcon={<Icon name="plus" className="h-4 w-4" />} onClick={() => args.onRunAction('create-bot')}>
                 Create bot
               </Button>
-              <Button variant="ghost" size="sm" className="w-9 px-0" aria-label="Refresh bots" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-9 px-0"
+                aria-label="Refresh bots"
+                leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+                onClick={() => args.onRefresh('bots')}
+              >
                 <span className="sr-only">Refresh bots</span>
               </Button>
             </>
@@ -816,7 +976,10 @@ function BotOverviewRecipe() {
               value={formatMoney(bot.allocatedCapital)}
               helper={`Config v${bot.configVersion} · ${bot.status}`}
               selected={bot.id === activeBotId}
-              onClick={() => setActiveBotId(bot.id)}
+              onClick={() => {
+                setActiveBotId(bot.id);
+                args.onFieldChange('bots.activeBotId', bot.id);
+              }}
               trailing={<Badge tone={bot.status === 'running' ? 'success' : 'danger'}>{bot.mode}</Badge>}
             />
           ))}
@@ -827,11 +990,28 @@ function BotOverviewRecipe() {
             rows={botRows}
             columns={columns}
             rowKey={(bot) => bot.id}
-            selection={{ mode: 'multi', selectedKeys, onChange: setSelectedKeys }}
+            selection={{
+              mode: 'multi',
+              selectedKeys,
+              onChange: (keys, rows) => {
+                setSelectedKeys(keys);
+                args.onSelectionChange('bots', { selectedKeys: keys, selectedRows: rows.map((bot) => bot.id) });
+              },
+            }}
             rowClassName={(bot) => (bot.id === activeBotId ? 'bg-[var(--rui-accent-muted)]' : '')}
             renderSelectionActions={({ selectedRows, clearSelection }) => (
               <>
-                <Button size="sm" variant="secondary" leftIcon={<Icon name="play" className="h-4 w-4" />}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={<Icon name="play" className="h-4 w-4" />}
+                  onClick={() =>
+                    args.onRunAction(
+                      'start-selected-bots',
+                      selectedRows.map((bot) => bot.id),
+                    )
+                  }
+                >
                   Start {selectedRows.length}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={clearSelection}>
@@ -846,21 +1026,9 @@ function BotOverviewRecipe() {
   );
 }
 
-const cryptoTrackerSnippet = `
-<Table
-  tableId="crypto-tracker"
-  rows={symbolRows}
-  columns={symbolColumns}
-  rowKey={(row) => row.id}
-  selection={{ mode: 'multi', selectedKeys, onChange: setSelectedSymbols }}
-  containerClassName="max-h-[520px]"
-  renderHeaderFilters={({ setGlobalSearch }) => <Text onChange={setGlobalSearch} placeholder="Search symbols" />}
-/>
-`;
-
-function CryptoTrackerRecipe() {
+function CryptoTrackerRecipe(args: RecipeStoryArgs) {
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>(['sym-pixel']);
-  const [state, setState] = useState<TableState | null>(null);
+  const [, setState] = useState<TableState | null>(null);
   const columns: TableColumn<AnyRow>[] = [
     { id: 'level', label: 'Level', kind: 'enum', width: 110 },
     { id: 'symbol', label: 'Symbol', kind: 'text', width: 130, renderCell: (row) => <span className="font-semibold text-white">{row.symbol}</span> },
@@ -883,18 +1051,20 @@ function CryptoTrackerRecipe() {
     { id: 'micro', label: 'OB Micro', kind: 'text', width: 110 },
   ];
   return (
-    <Recipe
-      title="Crypto Tracker Table Recipe"
-      description="A wide, horizontally scrollable table matching the symbol analysis and tracker surfaces."
-      code={cryptoTrackerSnippet}
-      state={{ selectedSymbols, sort: state?.sort ?? null, globalSearch: state?.globalSearch ?? '', visibleColumnIds: state?.visibleColumnIds ?? [] }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <PageHeader
           title="Symbol analysis"
           description="Wide live table with sticky headers and market windows."
           actions={
-            <Button variant="ghost" size="sm" className="w-9 px-0" aria-label="Refresh symbol analysis" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-9 px-0"
+              aria-label="Refresh symbol analysis"
+              leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+              onClick={() => args.onRefresh('symbol-analysis')}
+            >
               <span className="sr-only">Refresh symbol analysis</span>
             </Button>
           }
@@ -905,12 +1075,29 @@ function CryptoTrackerRecipe() {
             rows={symbolRows}
             columns={columns}
             rowKey={(row) => row.id}
-            selection={{ mode: 'multi', selectedKeys: selectedSymbols, onChange: setSelectedSymbols }}
-            onStateChange={setState}
+            selection={{
+              mode: 'multi',
+              selectedKeys: selectedSymbols,
+              onChange: (keys, rows) => {
+                setSelectedSymbols(keys);
+                args.onSelectionChange('symbol-analysis', { selectedKeys: keys, selectedRows: rows.map((row) => row.symbol) });
+              },
+            }}
+            onStateChange={(nextState) => {
+              setState(nextState);
+              args.onTableStateChange('symbol-analysis', { sort: nextState.sort, globalSearch: nextState.globalSearch });
+            }}
             containerClassName="max-h-[520px]"
             renderHeaderFilters={({ setGlobalSearch, reset }) => (
               <>
-                <Text onChange={setGlobalSearch} placeholder="Search symbols" className="w-full sm:w-[260px]" />
+                <Text
+                  onChange={(value) => {
+                    setGlobalSearch(value);
+                    args.onFieldChange('symbol-analysis.search', value);
+                  }}
+                  placeholder="Search symbols"
+                  className="w-full sm:w-[260px]"
+                />
                 <Button size="sm" variant="ghost" onClick={reset}>
                   Reset table
                 </Button>
@@ -923,35 +1110,25 @@ function CryptoTrackerRecipe() {
   );
 }
 
-const patternsSnippet = `
-<Table
-  tableId="patterns"
-  rows={patternRows}
-  columns={patternColumns}
-  rowKey={(row) => row.tradeId}
-  renderExpandedContent={(row) => (
-    <Table rows={row.lifecycleRows} columns={lifecycleColumns} rowKey={(entry) => entry.id} />
-  )}
-/>
-`;
-
-function PatternsRecipe() {
+function PatternsRecipe(args: RecipeStoryArgs) {
   const [pnlFilter, setPnlFilter] = useState('all');
   const [expandedRowIds, setExpandedRowIds] = useState<string[]>(['trade-pixel-closed-1']);
   const rows = patternRows.filter((row) => (pnlFilter === 'all' ? true : pnlFilter === 'win' ? row.pnlUsd > 0 : row.pnlUsd < 0));
   return (
-    <Recipe
-      title="Patterns Screen Recipe"
-      description="Patterns table with PnL filters, JSON action buttons, and an expanded lifecycle table like the bot screen."
-      code={patternsSnippet}
-      state={{ pnlFilter, expandedRowIds }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <PageHeader
           title="Patterns"
           description="Inspect trade lifecycle context used by model feedback and pattern review."
           actions={
-            <Button variant="ghost" size="sm" className="w-9 px-0" aria-label="Refresh patterns" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-9 px-0"
+              aria-label="Refresh patterns"
+              leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+              onClick={() => args.onRefresh('patterns')}
+            >
               <span className="sr-only">Refresh patterns</span>
             </Button>
           }
@@ -963,7 +1140,11 @@ function PatternsRecipe() {
             <ChipCard title="Losers" value={patternRows.filter((row) => row.pnlUsd < 0).length} helper="Negative net PnL" tone="danger" />
             <SelectBox
               value={pnlFilter}
-              onChange={(value) => setPnlFilter(value || 'all')}
+              onChange={(value) => {
+                const nextValue = value || 'all';
+                setPnlFilter(nextValue);
+                args.onFieldChange('patterns.pnlFilter', nextValue);
+              }}
               options={[
                 { label: 'All PnL', value: 'all' },
                 { label: 'Winners only', value: 'win' },
@@ -989,10 +1170,10 @@ function PatternsRecipe() {
                 width: 260,
                 renderCell: () => (
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline" leftIcon={<Icon name="download" className="h-4 w-4" />}>
+                    <Button size="sm" variant="outline" leftIcon={<Icon name="download" className="h-4 w-4" />} onClick={() => args.onExport('pattern-lifecycle-json')}>
                       Lifecycle JSON
                     </Button>
-                    <Button size="sm" variant="outline" leftIcon={<Icon name="download" className="h-4 w-4" />}>
+                    <Button size="sm" variant="outline" leftIcon={<Icon name="download" className="h-4 w-4" />} onClick={() => args.onExport('pattern-training-json')}>
                       Training JSON
                     </Button>
                   </div>
@@ -1001,7 +1182,10 @@ function PatternsRecipe() {
             ]}
             rowKey={(row) => row.tradeId}
             expandedRowIds={expandedRowIds}
-            onExpandedChange={setExpandedRowIds}
+            onExpandedChange={(rowIds) => {
+              setExpandedRowIds(rowIds);
+              args.onFieldChange('patterns.expandedRowIds', rowIds);
+            }}
             renderExpandedContent={() => (
               <Table
                 tableId="storybook-pattern-lifecycle-nested"
@@ -1019,34 +1203,25 @@ function PatternsRecipe() {
   );
 }
 
-const walletsSnippet = `
-<DateTimeSelector type="date" value={dateFrom} onChange={setDateFrom} />
-<SelectBox value={botId} onChange={setBotId} options={botOptions} />
-<Table tableId="wallet-transaction-history" rows={historyRows} columns={walletColumns} rowKey={(row) => row.id} />
-`;
-
-function WalletsRecipe() {
+function WalletsRecipe(args: RecipeStoryArgs) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [botId, setBotId] = useState('');
   const botOptions = [{ label: 'All bots', value: '' }, ...botRows.map((bot) => ({ label: bot.name, value: bot.id }))];
   return (
-    <Recipe
-      title="Wallet Screen Recipe"
-      description="Wallet metric cards, date filters, bot selector, realtime asset table, and transaction history table."
-      code={walletsSnippet}
-      state={{ dateFrom, dateTo, botId }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <PageHeader title="Wallets" description="Realtime balances and persisted account snapshots." />
-        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
-          <ChipCard title="Active adapter" value="BINANCE" helper="Realtime wallet feed" />
-          <ChipCard title="Realtime assets" value={walletRows.length} helper="Assets with positive balance" />
-          <ChipCard title="Actual exchange balance" value="$181.03" helper="Full spot wallet" tone="neutral" />
-          <ChipCard title="Bots book value" value="$196.01" helper="Allocated $3,200.00" tone="danger" />
-          <ChipCard title="Left to trade" value="$181.03" helper="Free USDT" />
-          <ChipCard title="Transaction rows" value={walletHistoryRows.length} helper="Filtered snapshots" />
-        </div>
+        {args.showMetricCards ? (
+          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+            <ChipCard title="Active adapter" value="BINANCE" helper="Realtime wallet feed" />
+            <ChipCard title="Realtime assets" value={walletRows.length} helper="Assets with positive balance" />
+            <ChipCard title="Actual exchange balance" value="$181.03" helper="Full spot wallet" tone="neutral" />
+            <ChipCard title="Bots book value" value="$196.01" helper="Allocated $3,200.00" tone="danger" />
+            <ChipCard title="Left to trade" value="$181.03" helper="Free USDT" />
+            <ChipCard title="Transaction rows" value={walletHistoryRows.length} helper="Filtered snapshots" />
+          </div>
+        ) : null}
         <GridLayout
           allowMovement={false}
           allowResize={false}
@@ -1078,9 +1253,34 @@ function WalletsRecipe() {
               defaultWidth: 'half',
               action: (
                 <div className="flex flex-wrap items-center gap-2">
-                  <DateTimeSelector type="date" value={dateFrom} onChange={setDateFrom} className="w-[160px]" />
-                  <DateTimeSelector type="date" value={dateTo} onChange={setDateTo} className="w-[160px]" />
-                  <SelectBox value={botId} onChange={(value) => setBotId(value || '')} options={botOptions} className="w-[220px]" />
+                  <DateTimeSelector
+                    type="date"
+                    value={dateFrom}
+                    onChange={(value) => {
+                      setDateFrom(value);
+                      args.onFieldChange('wallets.dateFrom', value);
+                    }}
+                    className="w-[160px]"
+                  />
+                  <DateTimeSelector
+                    type="date"
+                    value={dateTo}
+                    onChange={(value) => {
+                      setDateTo(value);
+                      args.onFieldChange('wallets.dateTo', value);
+                    }}
+                    className="w-[160px]"
+                  />
+                  <SelectBox
+                    value={botId}
+                    onChange={(value) => {
+                      const nextValue = value || '';
+                      setBotId(nextValue);
+                      args.onFieldChange('wallets.botId', nextValue);
+                    }}
+                    options={botOptions}
+                    className="w-[220px]"
+                  />
                 </div>
               ),
               content: (
@@ -1108,14 +1308,7 @@ function WalletsRecipe() {
   );
 }
 
-const configSnippet = `
-<Page sidebar={<Sidebar items={items} activeId={active} onSelect={setActive} />}>
-  <Banner>Core bot identity, simplified controls, presets, import/export, and recent config audit history.</Banner>
-  <GridLayout panels={[{ id: 'identity', title: 'Core bot identity', content: <Text value={name} onChange={setName} /> }]} />
-</Page>
-`;
-
-function BotConfigRecipe() {
+function BotConfigRecipe(args: RecipeStoryArgs) {
   const [active, setActive] = useState('basic');
   const [name, setName] = useState('CC Bot');
   const [capital, setCapital] = useState<number | null>(1000);
@@ -1135,22 +1328,30 @@ function BotConfigRecipe() {
     { id: 'review', order: 2, width: 'half', collapsed: false, fullscreen: false },
   ]);
   return (
-    <Recipe
-      title="Bot Config Screen Recipe"
-      description="Sidebar + page shell + banners + controlled fields + movable panels. This story mirrors the config page composition without moving config logic into @react/ui."
-      code={configSnippet}
-      state={{ active, name, capital, exchange, suspendBehavior, autoSave, notes, layout }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <Page
         title="Bot configuration"
         description="Core bot identity, controls, presets, import/export, and recent config audit history."
-        sidebar={<Sidebar items={items} activeId={active} onSelect={setActive} />}
+        sidebar={
+          <Sidebar
+            items={items}
+            activeId={active}
+            onSelect={(nextActive) => {
+              setActive(nextActive);
+              args.onFieldChange('bot-config.activeSection', nextActive);
+            }}
+          />
+        }
         actions={
           <>
-            <Button variant="outline" size="sm" leftIcon={<Icon name="download" className="h-4 w-4" />}>
+            <Button variant="outline" size="sm" leftIcon={<Icon name="download" className="h-4 w-4" />} onClick={() => args.onExport('bot-config')}>
               Export config
             </Button>
-            <Button size="sm" leftIcon={<Icon name="save" className="h-4 w-4" />}>
+            <Button
+              size="sm"
+              leftIcon={<Icon name="save" className="h-4 w-4" />}
+              onClick={() => args.onRunAction('save-config', { name, capital, exchange, suspendBehavior, autoSave })}
+            >
               Save config
             </Button>
           </>
@@ -1173,7 +1374,10 @@ function BotConfigRecipe() {
         </Banner>
         <GridLayout
           layout={layout}
-          onLayoutChange={setLayout}
+          onLayoutChange={(nextLayout) => {
+            setLayout(nextLayout);
+            args.onFieldChange('bot-config.layout', nextLayout);
+          }}
           panels={[
             {
               id: 'identity',
@@ -1181,24 +1385,58 @@ function BotConfigRecipe() {
               description: 'Reusable field examples used by bot config forms.',
               defaultWidth: 'full',
               action: (
-                <Button size="sm" variant="ghost" leftIcon={<Icon name="check" className="h-4 w-4" />}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  leftIcon={<Icon name="check" className="h-4 w-4" />}
+                  onClick={() => args.onRunAction('validate-config', { name, capital, exchange })}
+                >
                   Validate config
                 </Button>
               ),
               content: (
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Text label="Bot name" value={name} onChange={setName} description="Displayed in navigation, tables, and audit history." />
-                  <NumberInput label="Capital" value={capital} onChange={setCapital} prefix="$" description="Allocated capital for this bot." />
+                  <Text
+                    label="Bot name"
+                    value={name}
+                    onChange={(value) => {
+                      setName(value);
+                      args.onFieldChange('bot-config.name', value);
+                    }}
+                    description="Displayed in navigation, tables, and audit history."
+                  />
+                  <NumberInput
+                    label="Capital"
+                    value={capital}
+                    onChange={(value) => {
+                      setCapital(value);
+                      args.onFieldChange('bot-config.capital', value);
+                    }}
+                    prefix="$"
+                    description="Allocated capital for this bot."
+                  />
                   <SelectBox
                     label="Exchange"
                     value={exchange}
-                    onChange={(value) => setExchange(value || 'binance')}
+                    onChange={(value) => {
+                      const nextValue = value || 'binance';
+                      setExchange(nextValue);
+                      args.onFieldChange('bot-config.exchange', nextValue);
+                    }}
                     options={[
                       { label: 'Binance', value: 'binance' },
                       { label: 'Simulator', value: 'simulator' },
                     ]}
                   />
-                  <TextArea label="Operator note" value={notes} onChange={setNotes} rows={4} />
+                  <TextArea
+                    label="Operator note"
+                    value={notes}
+                    onChange={(value) => {
+                      setNotes(value);
+                      args.onFieldChange('bot-config.notes', value);
+                    }}
+                    rows={4}
+                  />
                 </div>
               ),
             },
@@ -1211,7 +1449,11 @@ function BotConfigRecipe() {
                 <div className="space-y-3">
                   <RadioCard
                     checked={suspendBehavior === 'stop'}
-                    onCheckedChange={(checked) => checked && setSuspendBehavior('stop')}
+                    onCheckedChange={(checked) => {
+                      if (!checked) return;
+                      setSuspendBehavior('stop');
+                      args.onFieldChange('bot-config.suspendBehavior', 'stop');
+                    }}
                     name="suspend-behavior"
                     value="stop"
                     title="Stop bots on system suspend"
@@ -1220,13 +1462,25 @@ function BotConfigRecipe() {
                   />
                   <RadioCard
                     checked={suspendBehavior === 'keep'}
-                    onCheckedChange={(checked) => checked && setSuspendBehavior('keep')}
+                    onCheckedChange={(checked) => {
+                      if (!checked) return;
+                      setSuspendBehavior('keep');
+                      args.onFieldChange('bot-config.suspendBehavior', 'keep');
+                    }}
                     name="suspend-behavior"
                     value="keep"
                     title="Keep runtime state"
                     description="Leave runtime flags untouched for controlled environments."
                   />
-                  <ToggleCard checked={autoSave} onCheckedChange={setAutoSave} title="Auto-save draft locally" description="Storybook-only example of a controlled ToggleCard." />
+                  <ToggleCard
+                    checked={autoSave}
+                    onCheckedChange={(checked) => {
+                      setAutoSave(checked);
+                      args.onFieldChange('bot-config.autoSave', checked);
+                    }}
+                    title="Auto-save draft locally"
+                    description="Storybook-only example of a controlled ToggleCard."
+                  />
                 </div>
               ),
             },
@@ -1236,7 +1490,7 @@ function BotConfigRecipe() {
               description: 'Panel action slots stay app-defined.',
               defaultWidth: 'half',
               action: (
-                <Button size="sm" variant="outline" leftIcon={<Icon name="eye" className="h-4 w-4" />}>
+                <Button size="sm" variant="outline" leftIcon={<Icon name="eye" className="h-4 w-4" />} onClick={() => args.onRunAction('execution-preview')}>
                   Preview
                 </Button>
               ),
@@ -1259,30 +1513,15 @@ function BotConfigRecipe() {
   );
 }
 
-const fieldComponentSnippet = `
-<AccentProvider accentKey={accent}>
-  <Button leftIcon={<Icon name="refresh" />}>Refresh</Button>
-  <Text value={value} onChange={setValue} />
-  <DateTimeSelector type="datetime-local" value={date} onChange={setDate} />
-  <SelectBox mode="multiple" value={values} onChange={setValues} options={options} />
-  <Switch checked={enabled} onCheckedChange={setEnabled} />
-</AccentProvider>
-`;
-
-function ComponentFieldRecipe() {
-  const [accent, setAccent] = useState<'default' | 'teal' | 'warning' | 'danger' | 'neutral'>('default');
+function ComponentFieldRecipe(args: RecipeStoryArgs) {
+  const [accent, setAccent] = useState<AccentKey>(args.accentKey);
   const [text, setText] = useState('CC Bot');
   const [amount, setAmount] = useState<number | null>(1000);
   const [date, setDate] = useState('2026-04-19T16:34');
   const [selected, setSelected] = useState<string[]>(['bot_lvhxur7qmnqj8yzt']);
   const [enabled, setEnabled] = useState(true);
   return (
-    <Recipe
-      title="Components, Fields, Elements, and Layout Primitives"
-      description="One place to inspect each exported building block with accent choices, live prop state, and copyable usage."
-      code={fieldComponentSnippet}
-      state={{ accent, text, amount, date, selected, enabled }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <AccentProvider accentKey={accent}>
         <PageContainer>
           <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
@@ -1290,43 +1529,112 @@ function ComponentFieldRecipe() {
               <SelectBox
                 label="Accent context"
                 value={accent}
-                onChange={(value) => setAccent((value || 'default') as typeof accent)}
+                onChange={(value) => {
+                  const nextValue = (value || 'default') as AccentKey;
+                  setAccent(nextValue);
+                  args.onFieldChange('component-gallery.accentKey', nextValue);
+                }}
                 options={[
                   { label: 'Default', value: 'default' },
                   { label: 'Teal', value: 'teal' },
                   { label: 'Warning', value: 'warning' },
                   { label: 'Danger', value: 'danger' },
                   { label: 'Neutral', value: 'neutral' },
+                  { label: 'TailAdmin', value: 'tailadmin' },
+                  { label: 'Light Blue', value: 'light-blue' },
+                  { label: 'Light Success', value: 'light-success' },
+                  { label: 'Light Warning', value: 'light-warning' },
+                  { label: 'Light Danger', value: 'light-danger' },
+                  { label: 'Light Neutral', value: 'light-neutral' },
                 ]}
               />
               <Banner tone="info">Children pick colors from AccentProvider unless an accentKey prop overrides it.</Banner>
             </Card>
             <div className="space-y-4">
               <Card contentClassName="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                <Button leftIcon={<Icon name="refresh" className="h-4 w-4" />}>Refresh</Button>
-                <Button variant="ghost" className="w-9 px-0" aria-label="Icon-only refresh" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+                <Button leftIcon={<Icon name="refresh" className="h-4 w-4" />} onClick={() => args.onRefresh('component-gallery')}>
+                  Refresh
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-9 px-0"
+                  aria-label="Icon-only refresh"
+                  leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+                  onClick={() => args.onRefresh('component-gallery-icon')}
+                >
                   <span className="sr-only">Icon-only refresh</span>
                 </Button>
-                <Switch checked={enabled} onCheckedChange={setEnabled} label="Runtime switch" />
+                <Switch
+                  checked={enabled}
+                  onCheckedChange={(checked) => {
+                    setEnabled(checked);
+                    args.onFieldChange('component-gallery.enabled', checked);
+                  }}
+                  label="Runtime switch"
+                />
                 <Badge tone={enabled ? 'success' : 'warning'}>{enabled ? 'Enabled' : 'Paused'}</Badge>
               </Card>
               <Card contentClassName="grid gap-4 md:grid-cols-2">
-                <Text label="Text" value={text} onChange={setText} description="Controlled text input." />
-                <NumberInput label="Number" value={amount} onChange={setAmount} prefix="$" />
-                <DateTimeSelector label="Date time selector" type="datetime-local" value={date} onChange={setDate} />
+                <Text
+                  label="Text"
+                  value={text}
+                  onChange={(value) => {
+                    setText(value);
+                    args.onFieldChange('component-gallery.text', value);
+                  }}
+                  description="Controlled text input."
+                />
+                <NumberInput
+                  label="Number"
+                  value={amount}
+                  onChange={(value) => {
+                    setAmount(value);
+                    args.onFieldChange('component-gallery.amount', value);
+                  }}
+                  prefix="$"
+                />
+                <DateTimeSelector
+                  label="Date time selector"
+                  type="datetime-local"
+                  value={date}
+                  onChange={(value) => {
+                    setDate(value);
+                    args.onFieldChange('component-gallery.date', value);
+                  }}
+                />
                 <SelectBox
                   mode="multiple"
                   label="Multi select"
                   value={selected}
-                  onChange={setSelected}
+                  onChange={(value) => {
+                    setSelected(value);
+                    args.onFieldChange('component-gallery.selected', value);
+                  }}
                   options={botRows.map((bot) => ({ label: bot.name, value: bot.id }))}
                   showClear
                 />
               </Card>
               <Card contentClassName="grid gap-4 md:grid-cols-3">
                 <ChipCard title="ChipCard" value="$1,000.00" helper="Wallet and overview metrics" />
-                <RadioCard checked={enabled} onCheckedChange={setEnabled} title="RadioCard" description="Card-like choice control" toggleable />
-                <ToggleCard checked={enabled} onCheckedChange={setEnabled} title="ToggleCard" description="Switch embedded in a card" />
+                <RadioCard
+                  checked={enabled}
+                  onCheckedChange={(checked) => {
+                    setEnabled(checked);
+                    args.onFieldChange('component-gallery.radioCard', checked);
+                  }}
+                  title="RadioCard"
+                  description="Card-like choice control"
+                  toggleable
+                />
+                <ToggleCard
+                  checked={enabled}
+                  onCheckedChange={(checked) => {
+                    setEnabled(checked);
+                    args.onFieldChange('component-gallery.toggleCard', checked);
+                  }}
+                  title="ToggleCard"
+                  description="Switch embedded in a card"
+                />
               </Card>
             </div>
           </div>
@@ -1336,25 +1644,13 @@ function ComponentFieldRecipe() {
   );
 }
 
-const pageGallerySnippet = `
-<PageContainer>
-  <PageHeader title="Dashboard" actions={<Button leftIcon={<Icon name="refresh" />}>Refresh</Button>} />
-  <GridLayout panels={panels} />
-</PageContainer>
-`;
-
-function ScreenGalleryRecipe() {
-  const [logSearch, setLogSearch] = useState('');
+function ScreenGalleryRecipe(args: RecipeStoryArgs) {
+  const [logSearch, setLogSearch] = useState(args.initialSearch);
   const [backtestFrom, setBacktestFrom] = useState('2026-04-01');
   const [backtestTo, setBacktestTo] = useState('2026-04-19');
   const [riskLimit, setRiskLimit] = useState<number | null>(0.7);
   return (
-    <Recipe
-      title="End-to-End Screen Gallery"
-      description="Compact recipes for dashboard, settings, live logs, debug, and backtesting screens using the same exported primitives."
-      code={pageGallerySnippet}
-      state={{ logSearch, backtestFrom, backtestTo, riskLimit }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <GridLayout
           panels={[
@@ -1364,7 +1660,14 @@ function ScreenGalleryRecipe() {
               description: 'Metrics, action buttons, and compact tables.',
               defaultWidth: 'full',
               action: (
-                <Button variant="ghost" size="sm" className="w-9 px-0" aria-label="Refresh dashboard" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-9 px-0"
+                  aria-label="Refresh dashboard"
+                  leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+                  onClick={() => args.onRefresh('dashboard')}
+                >
                   <span className="sr-only">Refresh dashboard</span>
                 </Button>
               ),
@@ -1397,12 +1700,25 @@ function ScreenGalleryRecipe() {
               title: 'Live logs',
               description: 'Logger filters, payload expansion, and clear action are prop-driven.',
               defaultWidth: 'half',
-              action: <Text value={logSearch} onChange={setLogSearch} placeholder="Search logs" className="w-[220px]" />,
+              action: (
+                <Text
+                  value={logSearch}
+                  onChange={(value) => {
+                    setLogSearch(value);
+                    args.onFieldChange('screen-gallery.logSearch', value);
+                  }}
+                  placeholder="Search logs"
+                  className="w-[220px]"
+                />
+              ),
               content: (
                 <Logger
                   entries={logEntries}
                   search={logSearch}
-                  onSearchChange={setLogSearch}
+                  onSearchChange={(value) => {
+                    setLogSearch(value);
+                    args.onFieldChange('screen-gallery.loggerSearch', value);
+                  }}
                   categories={[
                     { label: 'All categories', value: 'ALL' },
                     { label: 'Runtime', value: 'runtime' },
@@ -1421,10 +1737,34 @@ function ScreenGalleryRecipe() {
               defaultWidth: 'full',
               action: (
                 <div className="flex flex-wrap gap-2">
-                  <DateTimeSelector type="date" value={backtestFrom} onChange={setBacktestFrom} className="w-[160px]" />
-                  <DateTimeSelector type="date" value={backtestTo} onChange={setBacktestTo} className="w-[160px]" />
-                  <NumberInput value={riskLimit} onChange={setRiskLimit} suffix="%" className="w-[120px]" />
-                  <Button size="sm" leftIcon={<Icon name="play" className="h-4 w-4" />}>
+                  <DateTimeSelector
+                    type="date"
+                    value={backtestFrom}
+                    onChange={(value) => {
+                      setBacktestFrom(value);
+                      args.onFieldChange('screen-gallery.backtestFrom', value);
+                    }}
+                    className="w-[160px]"
+                  />
+                  <DateTimeSelector
+                    type="date"
+                    value={backtestTo}
+                    onChange={(value) => {
+                      setBacktestTo(value);
+                      args.onFieldChange('screen-gallery.backtestTo', value);
+                    }}
+                    className="w-[160px]"
+                  />
+                  <NumberInput
+                    value={riskLimit}
+                    onChange={(value) => {
+                      setRiskLimit(value);
+                      args.onFieldChange('screen-gallery.riskLimit', value);
+                    }}
+                    suffix="%"
+                    className="w-[120px]"
+                  />
+                  <Button size="sm" leftIcon={<Icon name="play" className="h-4 w-4" />} onClick={() => args.onRunAction('run-backtest', { backtestFrom, backtestTo, riskLimit })}>
                     Run
                   </Button>
                 </div>
@@ -1438,18 +1778,7 @@ function ScreenGalleryRecipe() {
   );
 }
 
-const additionalScreensSnippet = `
-<GridLayout
-  panels={[
-    { id: 'create', title: 'Create bot', content: <CreateBotForm /> },
-    { id: 'workspace', title: 'Bot workspace', content: <WorkspacePanels /> },
-    { id: 'charts', title: 'Charts overview', content: <TrackerTable /> },
-    { id: 'tray', title: 'Tray popup', content: <CompactStatus /> },
-  ]}
-/>
-`;
-
-function AdditionalScreensRecipe() {
+function AdditionalScreensRecipe(args: RecipeStoryArgs) {
   const [newBotName, setNewBotName] = useState('Momentum Review Bot');
   const [strategy, setStrategy] = useState('spot_bot');
   const [quoteAsset, setQuoteAsset] = useState('USDT');
@@ -1458,12 +1787,7 @@ function AdditionalScreensRecipe() {
   const [trayEnabled, setTrayEnabled] = useState(true);
   const chartRows = symbolRows.map((row) => ({ ...row, selected: row.symbol === symbol }));
   return (
-    <Recipe
-      title="Additional Bot Screen Recipes"
-      description="Compact examples for create bot, workspace, charts, chart detail, tray popup, and placeholder-style routes."
-      code={additionalScreensSnippet}
-      state={{ newBotName, strategy, quoteAsset, workspaceTab, symbol, trayEnabled }}
-    >
+    <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <GridLayout
           panels={[
@@ -1474,12 +1798,23 @@ function AdditionalScreensRecipe() {
               defaultWidth: 'half',
               content: (
                 <div className="space-y-4">
-                  <Text label="Bot name" value={newBotName} onChange={setNewBotName} />
+                  <Text
+                    label="Bot name"
+                    value={newBotName}
+                    onChange={(value) => {
+                      setNewBotName(value);
+                      args.onFieldChange('additional.createBot.name', value);
+                    }}
+                  />
                   <div className="grid gap-3 md:grid-cols-2">
                     <SelectBox
                       label="Strategy"
                       value={strategy}
-                      onChange={(value) => setStrategy(value || 'spot_bot')}
+                      onChange={(value) => {
+                        const nextValue = value || 'spot_bot';
+                        setStrategy(nextValue);
+                        args.onFieldChange('additional.createBot.strategy', nextValue);
+                      }}
                       options={[
                         { label: 'Spot bot', value: 'spot_bot' },
                         { label: 'Scanner review', value: 'scanner_review' },
@@ -1488,7 +1823,11 @@ function AdditionalScreensRecipe() {
                     <SelectBox
                       label="Quote asset"
                       value={quoteAsset}
-                      onChange={(value) => setQuoteAsset(value || 'USDT')}
+                      onChange={(value) => {
+                        const nextValue = value || 'USDT';
+                        setQuoteAsset(nextValue);
+                        args.onFieldChange('additional.createBot.quoteAsset', nextValue);
+                      }}
                       options={[
                         { label: 'USDT', value: 'USDT' },
                         { label: 'BTC', value: 'BTC' },
@@ -1496,7 +1835,9 @@ function AdditionalScreensRecipe() {
                     />
                   </div>
                   <Banner tone="info">Create flows should pass app-side defaults into @react/ui fields; generated strategy metadata stays in the bot app.</Banner>
-                  <Button leftIcon={<Icon name="plus" className="h-4 w-4" />}>Create draft bot</Button>
+                  <Button leftIcon={<Icon name="plus" className="h-4 w-4" />} onClick={() => args.onRunAction('create-draft-bot', { newBotName, strategy, quoteAsset })}>
+                    Create draft bot
+                  </Button>
                 </div>
               ),
             },
@@ -1513,7 +1854,15 @@ function AdditionalScreensRecipe() {
                       ['positions', 'Positions'],
                       ['logs', 'Logs'],
                     ].map(([id, label]) => (
-                      <Button key={id} size="sm" variant={workspaceTab === id ? 'secondary' : 'ghost'} onClick={() => setWorkspaceTab(id)}>
+                      <Button
+                        key={id}
+                        size="sm"
+                        variant={workspaceTab === id ? 'secondary' : 'ghost'}
+                        onClick={() => {
+                          setWorkspaceTab(id);
+                          args.onFieldChange('additional.workspaceTab', id);
+                        }}
+                      >
                         {label}
                       </Button>
                     ))}
@@ -1524,13 +1873,20 @@ function AdditionalScreensRecipe() {
                     <ChipCard title="Capital left" value="$55.31" helper="CC Bot" tone="warning" />
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" leftIcon={<Icon name="play" className="h-4 w-4" />}>
+                    <Button size="sm" leftIcon={<Icon name="play" className="h-4 w-4" />} onClick={() => args.onRunAction('workspace-start')}>
                       Start
                     </Button>
-                    <Button size="sm" variant="outline" leftIcon={<Icon name="stop" className="h-4 w-4" />}>
+                    <Button size="sm" variant="outline" leftIcon={<Icon name="stop" className="h-4 w-4" />} onClick={() => args.onRunAction('workspace-stop')}>
                       Stop
                     </Button>
-                    <Button size="sm" variant="ghost" className="w-9 px-0" aria-label="Refresh workspace" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-9 px-0"
+                      aria-label="Refresh workspace"
+                      leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+                      onClick={() => args.onRefresh('workspace')}
+                    >
                       <span className="sr-only">Refresh workspace</span>
                     </Button>
                   </div>
@@ -1548,10 +1904,22 @@ function AdditionalScreensRecipe() {
                     <SelectBox
                       label="Focused symbol"
                       value={symbol}
-                      onChange={(value) => setSymbol(value || 'PIXEL - USDT')}
+                      onChange={(value) => {
+                        const nextValue = value || 'PIXEL - USDT';
+                        setSymbol(nextValue);
+                        args.onFieldChange('additional.focusedSymbol', nextValue);
+                      }}
                       options={symbolRows.map((row) => ({ label: row.symbol, value: row.symbol }))}
                     />
-                    <ToggleCard checked={trayEnabled} onCheckedChange={setTrayEnabled} title="Live tracker updates" description="Example of toolbar toggle state." />
+                    <ToggleCard
+                      checked={trayEnabled}
+                      onCheckedChange={(checked) => {
+                        setTrayEnabled(checked);
+                        args.onFieldChange('additional.liveTrackerUpdates', checked);
+                      }}
+                      title="Live tracker updates"
+                      description="Example of toolbar toggle state."
+                    />
                     <Banner tone="warning">Chart canvases and market-data adapters stay in the bot app; @react/ui provides the surrounding controls.</Banner>
                   </Card>
                   <Table
@@ -1605,8 +1973,17 @@ function AdditionalScreensRecipe() {
                     <ChipCard title="Net PnL" value="-$45.69" helper="69 trades" tone="danger" />
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm">Open dashboard</Button>
-                    <Button size="sm" variant="ghost" className="w-9 px-0" aria-label="Refresh tray" leftIcon={<Icon name="refresh" className="h-4 w-4" />}>
+                    <Button size="sm" onClick={() => args.onRunAction('tray-open-dashboard')}>
+                      Open dashboard
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-9 px-0"
+                      aria-label="Refresh tray"
+                      leftIcon={<Icon name="refresh" className="h-4 w-4" />}
+                      onClick={() => args.onRefresh('tray')}
+                    >
                       <span className="sr-only">Refresh tray</span>
                     </Button>
                   </div>
@@ -1619,7 +1996,15 @@ function AdditionalScreensRecipe() {
               description: 'Simple route shell for upcoming bot screens.',
               defaultWidth: 'half',
               content: (
-                <Banner tone="neutral" icon={<Icon name="sparkle" className="h-4 w-4" />} actions={<Button size="sm">Open docs</Button>}>
+                <Banner
+                  tone="neutral"
+                  icon={<Icon name="sparkle" className="h-4 w-4" />}
+                  actions={
+                    <Button size="sm" onClick={() => args.onRunAction('placeholder-open-docs')}>
+                      Open docs
+                    </Button>
+                  }
+                >
                   This placeholder uses package-level Banner and Button only; route copy and navigation decisions stay inside the bot app.
                 </Banner>
               ),
@@ -1632,37 +2017,91 @@ function AdditionalScreensRecipe() {
 }
 
 export const ComponentsFieldsElementsLayouts: Story = {
-  render: () => <ComponentFieldRecipe />,
+  parameters: sourceParameters(recipeCode('ComponentFieldRecipe'), 'Use Controls to change accent and initial values; use Actions to inspect field and button events.'),
+  render: (args) => <ComponentFieldRecipe {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Refresh' }));
+    await userEvent.clear(canvas.getByLabelText('Text'));
+    await userEvent.type(canvas.getByLabelText('Text'), 'Storybook controlled value');
+    await expect(args.onRefresh).toHaveBeenCalled();
+    await expect(args.onFieldChange).toHaveBeenCalled();
+  },
 };
 
 export const BotOverviewScreen: Story = {
-  render: () => <BotOverviewRecipe />,
+  parameters: sourceParameters(recipeCode('BotOverviewRecipe'), 'Use the Actions panel for refresh, row selection, switch toggles, and bot actions.'),
+  render: (args) => <BotOverviewRecipe {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: /refresh bots/i }));
+    await userEvent.click(canvas.getAllByRole('checkbox', { name: /select row/i })[1]);
+    await expect(args.onRefresh).toHaveBeenCalled();
+    await expect(args.onSelectionChange).toHaveBeenCalled();
+  },
 };
 
 export const TradeHistoryScreen: Story = {
-  render: () => <TradeHistoryRecipe />,
+  parameters: sourceParameters(
+    recipeCode('TradeHistoryRecipe'),
+    'Docs Source provides the copyable table recipe; Actions records filter, expansion, selection, refresh, and export events.',
+  ),
+  render: (args) => <TradeHistoryRecipe {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByPlaceholderText(/search by symbol/i), 'PIXEL');
+    await userEvent.click(canvas.getByRole('button', { name: /refresh trades/i }));
+    await expect(args.onFieldChange).toHaveBeenCalled();
+    await expect(args.onRefresh).toHaveBeenCalled();
+  },
 };
 
 export const CryptoTrackerTable: Story = {
-  render: () => <CryptoTrackerRecipe />,
+  parameters: sourceParameters(recipeCode('CryptoTrackerRecipe'), 'Wide-table behavior is documented through Source, Controls, Actions, and the table itself.'),
+  render: (args) => <CryptoTrackerRecipe {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByPlaceholderText(/search symbols/i), 'PIXEL');
+    await expect(args.onFieldChange).toHaveBeenCalled();
+  },
 };
 
 export const PatternsScreen: Story = {
-  render: () => <PatternsRecipe />,
+  parameters: sourceParameters(recipeCode('PatternsRecipe'), 'Use Actions to inspect PnL filter changes, expanded rows, JSON export buttons, and refresh.'),
+  render: (args) => <PatternsRecipe {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: /refresh patterns/i }));
+    await expect(args.onRefresh).toHaveBeenCalled();
+  },
 };
 
 export const WalletsScreen: Story = {
-  render: () => <WalletsRecipe />,
+  parameters: sourceParameters(recipeCode('WalletsRecipe'), 'Wallet date and bot filters are native controls in the canvas; value changes are reported through Actions.'),
+  render: (args) => <WalletsRecipe {...args} />,
 };
 
 export const BotConfigScreen: Story = {
-  render: () => <BotConfigRecipe />,
+  args: {
+    accentKey: 'teal',
+  },
+
+  parameters: sourceParameters(recipeCode('BotConfigRecipe'), 'The config screen recipe uses Storybook Controls for story args and Actions for every field/button state change.'),
+  render: (args) => <BotConfigRecipe {...args} />,
+
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: /validate config/i }));
+    await expect(args.onRunAction).toHaveBeenCalled();
+  },
 };
 
 export const ScreenGallery: Story = {
-  render: () => <ScreenGalleryRecipe />,
+  parameters: sourceParameters(recipeCode('ScreenGalleryRecipe'), 'Route-level examples for dashboard, settings, logs, and backtesting. Events are reported through Actions.'),
+  render: (args) => <ScreenGalleryRecipe {...args} />,
 };
 
 export const AdditionalBotScreens: Story = {
-  render: () => <AdditionalScreensRecipe />,
+  parameters: sourceParameters(recipeCode('AdditionalScreensRecipe'), 'Additional route recipes use Storybook docs source and Actions instead of custom in-canvas prop displays.'),
+  render: (args) => <AdditionalScreensRecipe {...args} />,
 };

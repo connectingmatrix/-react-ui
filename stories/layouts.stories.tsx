@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Badge,
   Button,
@@ -15,9 +15,9 @@ import {
   Table,
   ToggleCard,
   type GridPanelState,
+  type SidebarGroup,
   type TableColumn,
 } from '../src/index';
-import '../src/styles.css';
 import { CaseGrid, Section, StoryShell, type StoryCase } from './story-helpers';
 
 const meta: Meta = {
@@ -43,19 +43,57 @@ const columns: TableColumn<(typeof rows)[number]>[] = [
   { id: 'state', label: 'State', kind: 'enum', width: 120 },
 ];
 
+const sidebarGroups: SidebarGroup[] = [
+  {
+    id: 'config',
+    label: 'WORKSPACE CONFIG',
+    items: [
+      { id: 'overview', label: 'Overview', icon: <Icon name="check" className="h-5 w-5" /> },
+      { id: 'strategy', label: 'Strategy', icon: <Icon name="bars" className="h-5 w-5" /> },
+      { id: 'execution', label: 'Execution Preview', icon: <Icon name="trendup" className="h-5 w-5" /> },
+    ],
+  },
+  {
+    id: 'operations',
+    label: 'OPERATIONS',
+    items: [
+      { id: 'schedule', label: 'Risk & Schedule', icon: <Icon name="swap" className="h-5 w-5" /> },
+      { id: 'backtesting', label: 'Backtesting', icon: <Icon name="chart" className="h-5 w-5" /> },
+    ],
+  },
+  {
+    id: 'live',
+    label: 'LIVE VIEW',
+    items: [{ id: 'workspace', label: 'Live Workspace', icon: <Icon name="panel" className="h-5 w-5" /> }],
+  },
+];
+
 function SidebarDemo() {
   const [activeId, setActiveId] = useState('overview');
   return (
     <Sidebar
+      collapsible
       activeId={activeId}
       onSelect={setActiveId}
-      header={<div className="text-xs uppercase tracking-[0.18em] text-[var(--rui-text-tertiary)]">Sections</div>}
+      header={<div className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">Edit navigation</div>}
       footer={<Badge>4</Badge>}
-      items={[
-        { id: 'overview', label: 'Overview', description: 'Summary and health', icon: <Icon name="grid" className="h-4 w-4" /> },
-        { id: 'settings', label: 'Settings', description: 'Editable controls', icon: <Icon name="settings" className="h-4 w-4" /> },
-        { id: 'logs', label: 'Logs', description: 'Operational events', icon: <Icon name="live" className="h-4 w-4" />, badge: <Badge>new</Badge> },
-      ]}
+      groups={sidebarGroups}
+    />
+  );
+}
+
+function CollapsibleSidebarDemo() {
+  const [activeId, setActiveId] = useState('overview');
+  const [collapsed, setCollapsed] = useState(false);
+  return (
+    <Sidebar
+      collapsible
+      collapsed={collapsed}
+      onCollapsedChange={setCollapsed}
+      activeId={activeId}
+      onSelect={setActiveId}
+      header={<div className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">Edit navigation</div>}
+      groups={sidebarGroups}
     />
   );
 }
@@ -228,14 +266,26 @@ const pageCases: StoryCase[] = [
 
 const sidebarCases: StoryCase[] = [
   {
-    title: 'Sidebar items',
-    description: 'Active item, descriptions, icons, badges, header, footer, and onSelect.',
+    title: 'Sidebar grouped items',
+    description: 'Grouped navigation with active item, icons, header, footer, and onSelect.',
     props: [
-      { name: 'items', value: 'SidebarItem[]' },
+      { name: 'groups', value: 'SidebarGroup[]' },
       { name: 'activeId', value: '"overview"' },
       { name: 'onSelect', value: '(id, item) => void' },
     ],
     render: <SidebarDemo />,
+  },
+  {
+    title: 'Sidebar collapse',
+    description: 'Controlled expand/collapse support matching the narrow side panel pattern.',
+    props: [
+      { name: 'collapsible', value: 'true' },
+      { name: 'collapsed', value: 'collapsed' },
+      { name: 'onCollapsedChange', value: 'setCollapsed' },
+      { name: 'collapsedWidthClassName', value: '"w-[92px] min-w-[92px]"' },
+      { name: 'expandedWidthClassName', value: '"w-[360px] min-w-[220px]"' },
+    ],
+    render: <CollapsibleSidebarDemo />,
   },
   {
     title: 'Sidebar children',
@@ -350,4 +400,123 @@ export const GridAndPanelLayouts: Story = {
       </StoryShell>
     );
   },
+};
+
+interface LayoutControlsArgs {
+  pageTitle: string;
+  pageDescription: string;
+  pageContentClassName: string;
+  sidebarHeader: string;
+  sidebarFooter: string;
+  sidebarActiveId: string;
+  sidebarCollapsible: boolean;
+  sidebarCollapsed: boolean;
+  sidebarCollapseTitle: string;
+  sidebarExpandTitle: string;
+  sidebarCollapsedWidthClassName: string;
+  sidebarExpandedWidthClassName: string;
+  gridAllowMovement: boolean;
+  gridAllowResize: boolean;
+  gridAllowCollapse: boolean;
+  gridAllowFullscreen: boolean;
+  panelTitle: string;
+  panelDescription: string;
+}
+
+function LayoutControlsCanvas(args: LayoutControlsArgs) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(args.sidebarCollapsed);
+
+  useEffect(() => {
+    setSidebarCollapsed(args.sidebarCollapsed);
+  }, [args.sidebarCollapsed]);
+
+  return (
+    <Page
+      title={args.pageTitle}
+      description={args.pageDescription}
+      actions={<Button size="sm">Action</Button>}
+      contentClassName={args.pageContentClassName}
+      sidebar={
+        <Sidebar
+          groups={sidebarGroups}
+          activeId={args.sidebarActiveId}
+          collapsible={args.sidebarCollapsible}
+          collapsed={sidebarCollapsed}
+          onCollapsedChange={setSidebarCollapsed}
+          collapseTitle={args.sidebarCollapseTitle}
+          expandTitle={args.sidebarExpandTitle}
+          collapsedWidthClassName={args.sidebarCollapsedWidthClassName}
+          expandedWidthClassName={args.sidebarExpandedWidthClassName}
+          header={<div className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--rui-text-tertiary)]">{args.sidebarHeader}</div>}
+          footer={args.sidebarFooter ? <Badge>{args.sidebarFooter}</Badge> : null}
+        />
+      }
+      className="min-h-[720px]"
+    >
+      <GridLayout
+        allowMovement={args.gridAllowMovement}
+        allowResize={args.gridAllowResize}
+        allowCollapse={args.gridAllowCollapse}
+        allowFullscreen={args.gridAllowFullscreen}
+        panels={[
+          {
+            id: 'controlled-panel',
+            title: args.panelTitle,
+            description: args.panelDescription,
+            defaultWidth: 'full',
+            content: <Card>Use the Controls tab to adjust Page, Sidebar, GridLayout, and DynamicPanel props grouped by component.</Card>,
+          },
+        ]}
+      />
+    </Page>
+  );
+}
+
+export const LayoutControls: StoryObj<LayoutControlsArgs> = {
+  name: 'Grouped layout controls',
+  args: {
+    pageTitle: 'Config workspace',
+    pageDescription: 'A page shell with a collapsible side panel and movable content panels.',
+    pageContentClassName: 'space-y-5',
+    sidebarHeader: 'Edit navigation',
+    sidebarFooter: '3 sections',
+    sidebarActiveId: 'overview',
+    sidebarCollapsible: true,
+    sidebarCollapsed: false,
+    sidebarCollapseTitle: 'Collapse sidebar',
+    sidebarExpandTitle: 'Expand sidebar',
+    sidebarCollapsedWidthClassName: 'w-[92px] min-w-[92px]',
+    sidebarExpandedWidthClassName: 'w-[360px] min-w-[220px]',
+    gridAllowMovement: true,
+    gridAllowResize: true,
+    gridAllowCollapse: true,
+    gridAllowFullscreen: true,
+    panelTitle: 'Identity',
+    panelDescription: 'Panel chrome with package-provided controls.',
+  },
+  argTypes: {
+    pageTitle: { control: 'text', table: { category: 'Page', subcategory: 'Content' } },
+    pageDescription: { control: 'text', table: { category: 'Page', subcategory: 'Content' } },
+    pageContentClassName: { control: 'text', table: { category: 'Page', subcategory: 'Slots' } },
+    sidebarHeader: { control: 'text', table: { category: 'Sidebar', subcategory: 'Slots' } },
+    sidebarFooter: { control: 'text', table: { category: 'Sidebar', subcategory: 'Slots' } },
+    sidebarActiveId: {
+      control: 'select',
+      options: ['overview', 'strategy', 'execution', 'schedule', 'backtesting', 'workspace'],
+      table: { category: 'Sidebar', subcategory: 'Selection' },
+    },
+    sidebarCollapsible: { control: 'boolean', table: { category: 'Sidebar', subcategory: 'Collapse' } },
+    sidebarCollapsed: { control: 'boolean', table: { category: 'Sidebar', subcategory: 'Collapse' } },
+    sidebarCollapseTitle: { control: 'text', table: { category: 'Sidebar', subcategory: 'Collapse' } },
+    sidebarExpandTitle: { control: 'text', table: { category: 'Sidebar', subcategory: 'Collapse' } },
+    sidebarCollapsedWidthClassName: { control: 'text', table: { category: 'Sidebar', subcategory: 'Layout' } },
+    sidebarExpandedWidthClassName: { control: 'text', table: { category: 'Sidebar', subcategory: 'Layout' } },
+    gridAllowMovement: { control: 'boolean', table: { category: 'GridLayout', subcategory: 'Controls' } },
+    gridAllowResize: { control: 'boolean', table: { category: 'GridLayout', subcategory: 'Controls' } },
+    gridAllowCollapse: { control: 'boolean', table: { category: 'GridLayout', subcategory: 'Controls' } },
+    gridAllowFullscreen: { control: 'boolean', table: { category: 'GridLayout', subcategory: 'Controls' } },
+    panelTitle: { control: 'text', table: { category: 'DynamicPanel', subcategory: 'Header' } },
+    panelDescription: { control: 'text', table: { category: 'DynamicPanel', subcategory: 'Header' } },
+  },
+  render: (args) => <LayoutControlsCanvas {...args} />,
 };

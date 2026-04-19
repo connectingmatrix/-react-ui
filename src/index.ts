@@ -33,7 +33,7 @@ export type { NotificationItem, NotificationProps, NotificationViewportProps } f
 export { Page, PageContainer, PageHeader } from './layouts/Page';
 export type { PageContainerProps, PageHeaderProps, PageProps } from './layouts/Page';
 export { Sidebar, default as SidebarDefault } from './layouts/Sidebar';
-export type { SidebarItem, SidebarProps } from './layouts/Sidebar';
+export type { SidebarGroup, SidebarItem, SidebarProps } from './layouts/Sidebar';
 export { RadioCard, default as RadioCardDefault } from './components/RadioCard';
 export type { RadioCardProps } from './components/RadioCard';
 export { SelectBox, default as SelectBoxDefault } from './components/SelectBox';

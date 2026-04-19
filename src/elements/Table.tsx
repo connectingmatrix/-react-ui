@@ -871,7 +871,7 @@ export function Table<Row>({
           {options.map((option) => {
             const checked = selected.includes(String(option.value));
             return (
-              <label key={String(option.value)} className="flex items-center gap-3 text-sm text-white/75">
+              <label key={String(option.value)} className="flex items-center gap-3 text-sm text-[var(--rui-text-secondary)]">
                 <input
                   type="checkbox"
                   checked={checked}
@@ -949,7 +949,7 @@ export function Table<Row>({
 
   const hasColumnGroups = visibleColumns.some((column) => column.groupId || column.groupLabel);
   const groupedHeader = hasColumnGroups ? (
-    <tr className="sticky top-0 z-30 border-b border-white/10 bg-[var(--rui-bg-panel)] text-white/60">
+    <tr className="sticky top-0 z-30 border-b border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] text-[var(--rui-text-secondary)]">
       {selectionMode ? <th className="w-[52px] px-3 py-2" rowSpan={2} /> : null}
       {hasRowDetails ? <th className="w-14 px-3 py-2" rowSpan={2} /> : null}
       {visibleColumns.map((column) => (
@@ -1013,7 +1013,7 @@ export function Table<Row>({
       ) : null}
 
       {headerFilters || renderHeaderFilters ? (
-        <div className={cn('mb-3 flex flex-wrap items-center gap-2 rounded-[10px] border border-white/8 bg-black/10 p-3', classNames?.headerFilters)}>
+        <div className={cn('mb-3 flex flex-wrap items-center gap-2 rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] p-3', classNames?.headerFilters)}>
           {headerFilters}
           {renderHeaderFilters?.({
             state: mergedState,
@@ -1033,13 +1033,13 @@ export function Table<Row>({
             <div
               ref={filtersMenuRef}
               className={cn(
-                'fixed z-[130] w-[320px] overflow-auto rounded-[10px] border border-white/10 bg-[var(--rui-bg-panel)] p-3 shadow-panel rui-scrollbar',
+                'rui-theme fixed z-[130] w-[320px] overflow-auto rounded-[10px] border border-solid border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] p-3 shadow-panel rui-scrollbar',
                 classNames?.menu,
               )}
               style={{ left: filtersMenuPosition.left, top: filtersMenuPosition.top, maxHeight: filtersMenuPosition.maxHeight }}
             >
               <div className="mb-3 flex items-center justify-between">
-                <div className="text-xs uppercase tracking-[0.14em] text-white/45">Table filters</div>
+                <div className="text-xs uppercase tracking-[0.14em] text-[var(--rui-text-tertiary)]">Table filters</div>
                 <Button variant="ghost" size="sm" onClick={() => filterableVisibleColumns.forEach((column) => clearFilter(column.id))}>
                   Clear all
                 </Button>
@@ -1048,9 +1048,9 @@ export function Table<Row>({
                 {filterableVisibleColumns.map((column) => {
                   const filterActive = isFilterActive(column.kind || 'text', mergedState.filters[column.id]);
                   return (
-                    <div key={column.id} className="rounded-[10px] border border-white/8 bg-black/10 p-3">
+                    <div key={column.id} className="rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] p-3">
                       <div className="mb-2 flex items-center justify-between gap-3">
-                        <div className="text-sm font-medium text-white">{column.label}</div>
+                        <div className="text-sm font-medium text-[var(--rui-text-primary)]">{column.label}</div>
                         {filterActive ? (
                           <Button variant="ghost" size="sm" onClick={() => clearFilter(column.id)}>
                             Clear
@@ -1071,15 +1071,15 @@ export function Table<Row>({
         ? createPortal(
             <div
               ref={columnsMenuRef}
-              className={cn('fixed z-[130] w-[260px] rounded-[10px] border border-white/10 bg-[var(--rui-bg-panel)] p-3 shadow-panel', classNames?.menu)}
+              className={cn('rui-theme fixed z-[130] w-[260px] rounded-[10px] border border-solid border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] p-3 shadow-panel', classNames?.menu)}
               style={{ left: columnsMenuPosition.left, top: columnsMenuPosition.top, maxHeight: columnsMenuPosition.maxHeight }}
             >
-              <div className="mb-2 text-xs uppercase tracking-[0.14em] text-white/45">Visible columns</div>
+              <div className="mb-2 text-xs uppercase tracking-[0.14em] text-[var(--rui-text-tertiary)]">Visible columns</div>
               <div className="space-y-2 overflow-auto pr-1 rui-scrollbar" style={{ maxHeight: Math.max(120, columnsMenuPosition.maxHeight - 36) }}>
                 {visibleHideableColumns.map((column) => {
                   const checked = mergedState.visibleColumnIds.includes(column.id);
                   return (
-                    <label key={column.id} className="flex items-center gap-3 text-sm text-white/75">
+                    <label key={column.id} className="flex items-center gap-3 text-sm text-[var(--rui-text-secondary)]">
                       <input
                         type="checkbox"
                         checked={checked}
@@ -1117,7 +1117,7 @@ export function Table<Row>({
         : null}
 
       <div
-        className={cn('min-h-0 w-full flex-1 overflow-auto rounded-[10px] border border-white/8', containerClassName, classNames?.container)}
+        className={cn('min-h-0 w-full flex-1 overflow-auto rounded-[10px] border border-[var(--rui-border-soft)]', containerClassName, classNames?.container)}
         style={{ scrollbarGutter: 'stable both-edges', maxHeight: virtualEnabled ? maxHeight : undefined }}
         onScroll={(event) => {
           if (virtualEnabled) setScrollTop(event.currentTarget.scrollTop);
@@ -1133,7 +1133,7 @@ export function Table<Row>({
           </colgroup>
           <thead>
             {groupedHeader}
-            <tr className={cn('sticky top-0 z-20 border-b border-white/10 bg-[var(--rui-bg-panel)] text-white/70', hasColumnGroups && 'top-[37px]', classNames?.headerRow)}>
+            <tr className={cn('sticky top-0 z-20 border-b border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] text-[var(--rui-text-secondary)]', hasColumnGroups && 'top-[37px]', classNames?.headerRow)}>
               {selectionMode ? (
                 <th className="w-[52px] px-3 py-3 font-medium">
                   {selectionMode === 'multi' ? (
@@ -1166,13 +1166,13 @@ export function Table<Row>({
                         <button
                           type="button"
                           className={cn(
-                            'flex min-w-0 flex-1 items-center gap-1 text-left transition hover:text-white',
+                            'flex min-w-0 flex-1 appearance-none items-center gap-1 border-0 bg-transparent p-0 text-left font-medium text-inherit transition hover:text-[var(--rui-text-primary)]',
                             column.align === 'right' ? 'justify-end' : column.align === 'center' ? 'justify-center' : '',
                           )}
                           onClick={() => setTableState((current) => ({ ...current, sort: nextSortState(current.sort, column.id) }))}
                         >
                           <span className="truncate">{headerContent}</span>
-                          <span className={cn('text-[10px] uppercase tracking-[0.14em]', activeSort ? 'text-[var(--rui-accent)]' : 'text-white/25')}>
+                          <span className={cn('text-[10px] uppercase tracking-[0.14em]', activeSort ? 'text-[var(--rui-accent)]' : 'text-[var(--rui-text-tertiary)]')}>
                             {activeSort === 'asc' ? '↑' : activeSort === 'desc' ? '↓' : '•'}
                           </span>
                         </button>
@@ -1206,7 +1206,7 @@ export function Table<Row>({
             ) : null}
             {loading ? (
               <tr>
-                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-8 text-center text-white/55">
+                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-8 text-center text-[var(--rui-text-tertiary)]">
                   {loadingContent}
                 </td>
               </tr>
@@ -1222,7 +1222,7 @@ export function Table<Row>({
                   const selectionDisabled = selection?.isRowDisabled?.(row);
                   return (
                     <React.Fragment key={id}>
-                      <tr className={cn('border-b border-white/6 align-top last:border-none', selected && 'bg-[rgba(25,199,220,0.08)]', computedRowClassName, classNames?.row)}>
+                      <tr className={cn('border-b border-[var(--rui-border-soft)] align-top last:border-none', selected && 'bg-[var(--rui-accent-muted)]', computedRowClassName, classNames?.row)}>
                         {selectionMode ? (
                           <td className="px-3 py-3">
                             <input
@@ -1256,7 +1256,7 @@ export function Table<Row>({
                           const content = column.renderCell ? column.renderCell(row) : renderPrimitiveValue(getColumnValue(row, column));
                           const computedCellClassName = typeof column.cellClassName === 'function' ? column.cellClassName(row) : column.cellClassName;
                           return (
-                            <td key={column.id} className={cn('px-3 py-3 text-white/75', defaultAlignClass(column.align), computedCellClassName, classNames?.cell)}>
+                            <td key={column.id} className={cn('px-3 py-3 text-[var(--rui-text-secondary)]', defaultAlignClass(column.align), computedCellClassName, classNames?.cell)}>
                               {typeof content === 'string' || typeof content === 'number' ? (
                                 <div className={cn(column.wrap ? 'whitespace-normal break-words' : 'truncate')}>{content}</div>
                               ) : (
@@ -1267,21 +1267,21 @@ export function Table<Row>({
                         })}
                       </tr>
                       {expanded && hasExpandedContent ? (
-                        <tr className={cn('border-b border-white/6 last:border-none', detailRowClassName, classNames?.detailRow)}>
+                        <tr className={cn('border-b border-[var(--rui-border-soft)] last:border-none', detailRowClassName, classNames?.detailRow)}>
                           <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-3">
-                            <div className="rounded-[10px] border border-white/8 bg-black/10 p-4 text-sm text-white/75">
+                            <div className="rounded-[10px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] p-4 text-sm text-[var(--rui-text-secondary)]">
                               {hiddenDetailColumns.length ? (
                                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                                   {hiddenDetailColumns.map((column) => (
                                     <div key={column.id}>
-                                      <div className="text-xs uppercase tracking-[0.14em] text-white/40">{column.label}</div>
-                                      <div className="mt-1 whitespace-normal break-words text-white/85">{formatHiddenDetailValue(row, column)}</div>
+                                      <div className="text-xs uppercase tracking-[0.14em] text-[var(--rui-text-tertiary)]">{column.label}</div>
+                                      <div className="mt-1 whitespace-normal break-words text-[var(--rui-text-primary)]">{formatHiddenDetailValue(row, column)}</div>
                                     </div>
                                   ))}
                                 </div>
                               ) : null}
                               {customExpandedContent ? (
-                                <div className={cn(hiddenDetailColumns.length ? 'mt-4 border-t border-white/8 pt-4' : '')}>{customExpandedContent}</div>
+                                <div className={cn(hiddenDetailColumns.length ? 'mt-4 border-t border-[var(--rui-border-soft)] pt-4' : '')}>{customExpandedContent}</div>
                               ) : null}
                             </div>
                           </td>
@@ -1298,7 +1298,7 @@ export function Table<Row>({
             ) : null}
             {!loading && !sortedFilteredRows.length ? (
               <tr>
-                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-8 text-center text-white/55">
+                <td colSpan={visibleColumns.length + (hasRowDetails ? 1 : 0) + (selectionMode ? 1 : 0)} className="px-3 py-8 text-center text-[var(--rui-text-tertiary)]">
                   {emptyMessage}
                 </td>
               </tr>

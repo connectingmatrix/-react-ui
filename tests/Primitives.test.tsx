@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { AccentProvider } from '../src/context/AccentContext';
+import { AccentProvider, accentTokensToCssVars, defaultAccentPresets } from '../src/context/AccentContext';
 import Badge from '../src/components/Badge';
 import Banner from '../src/components/Banner';
 import Button from '../src/components/Button';
@@ -13,6 +13,7 @@ import Switch from '../src/components/Switch';
 import ToggleCard from '../src/components/ToggleCard';
 import GridLayout from '../src/layouts/GridLayout';
 import type { GridPanelState } from '../src/layouts/GridLayout';
+import Sidebar from '../src/layouts/Sidebar';
 import Logger from '../src/elements/Logger';
 import NotificationViewport, { Notification } from '../src/elements/NotificationViewport';
 import SelectBox from '../src/components/SelectBox';
@@ -124,6 +125,17 @@ describe('AccentContext', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Scoped' }).style.getPropertyValue('--rui-accent')).toBe('#19d3a8');
+  });
+
+  it('ships TailAdmin-inspired light accent presets', () => {
+    const vars = accentTokensToCssVars(defaultAccentPresets.tailadmin);
+
+    expect(vars['--rui-bg-app']).toBe('#f9fafb');
+    expect(vars['--rui-bg-panel']).toBe('#ffffff');
+    expect(vars['--rui-text-primary']).toBe('#101828');
+    expect(vars['--rui-accent']).toBe('#465fff');
+    expect(vars['--rui-accent-soft']).toBe('#ecf3ff');
+    expect(vars['--rui-accent-soft-text']).toBe('#465fff');
   });
 });
 
@@ -286,6 +298,48 @@ describe('GridLayout', () => {
 
     await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     expect(save).toHaveBeenCalledWith('dashboard', expect.arrayContaining([expect.objectContaining({ id: 'two', order: 0, width: 'full' })]));
+  });
+});
+
+describe('Sidebar', () => {
+  it('collapses grouped navigation and restores item labels', async () => {
+    const user = userEvent.setup();
+    render(
+      <Sidebar
+        collapsible
+        header={<span>Sections</span>}
+        groups={[
+          {
+            label: 'Primary',
+            items: [
+              { id: 'overview', label: 'Overview', icon: <span aria-hidden="true">O</span> },
+              { id: 'settings', label: 'Settings', icon: <span aria-hidden="true">S</span> },
+            ],
+          },
+        ]}
+        activeId="overview"
+      />,
+    );
+
+    expect(screen.getByText('Primary')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    expect(screen.queryByText('Primary')).not.toBeInTheDocument();
+    expect(screen.queryByText('Overview')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Overview')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Expand sidebar' }));
+    expect(screen.getByText('Overview')).toBeInTheDocument();
+  });
+
+  it('supports controlled collapsed state callbacks', async () => {
+    const user = userEvent.setup();
+    const onCollapsedChange = vi.fn();
+    render(<Sidebar collapsible collapsed items={[{ id: 'one', label: 'One' }]} onCollapsedChange={onCollapsedChange} />);
+
+    await user.click(screen.getByRole('button', { name: 'Expand sidebar' }));
+
+    expect(onCollapsedChange).toHaveBeenCalledWith(false);
+    expect(screen.queryByText('One')).not.toBeInTheDocument();
   });
 });
 

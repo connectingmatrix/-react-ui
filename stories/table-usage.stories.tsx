@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React, { useMemo, useState } from 'react';
 import { Badge, Button, Card, Icon, SelectBox, Switch, Table, Text, type TableColumn } from '../src/index';
-import '../src/styles.css';
 import { Section, StoryShell, formatDateTime, formatMoney, signedTone } from './story-helpers';
 
 const meta: Meta = {

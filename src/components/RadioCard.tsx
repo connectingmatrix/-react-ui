@@ -102,7 +102,7 @@ export const RadioCard = forwardRef<HTMLLabelElement, RadioCardProps>(function R
       <div className={cn('min-w-0 flex-1', contentClassName)}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            {title ? <div className={cn('text-sm font-semibold text-white', titleClassName)}>{title}</div> : null}
+            {title ? <div className={cn('text-sm font-semibold text-[var(--rui-text-primary)]', titleClassName)}>{title}</div> : null}
             {description ? <div className={cn('mt-1 text-sm text-[var(--rui-text-secondary)]', descriptionClassName)}>{description}</div> : null}
           </div>
           {trailing ? <div className="flex-shrink-0">{trailing}</div> : null}

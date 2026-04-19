@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 import { Badge, Banner, Button, Card, ChipCard, Icon, RadioCard, SelectBox, Switch, ToggleCard, Tooltip, type BadgeTone, type SelectBoxOption } from '../src/index';
-import '../src/styles.css';
 import { CaseGrid, Section, StoryShell, type StoryCase } from './story-helpers';
 
 const meta: Meta = {

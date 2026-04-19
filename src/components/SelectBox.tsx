@@ -337,7 +337,7 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
           >
             {summary as ReactNode}
           </span>
-          <span className="flex items-center gap-2 text-[#737a98]">
+            <span className="flex items-center gap-2 text-[var(--rui-text-tertiary)]">
             {endAdornment ? <span className={cn('inline-flex items-center', endAdornmentClassName)}>{endAdornment}</span> : null}
             {!endAdornment && mode === 'multiple' ? <span className={cn('text-xs uppercase tracking-wider', endAdornmentClassName)}>{selectedValueList.length}</span> : null}
             {clearable && ((mode === 'multiple' && (currentValue as TValue[] | undefined)?.length) || (mode === 'single' && currentValue != null)) ? (
@@ -398,14 +398,14 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
             {searchable ? (
               <div className="border-b border-white/8 p-3">
                 <div className="relative">
-                  <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+                  <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--rui-text-tertiary)]" />
                   <input
                     ref={searchRef}
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder={searchPlaceholder}
                     className={cn(
-                      'h-10 w-full rounded-[6px] border border-white/10 bg-black/20 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[var(--rui-accent)] focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0',
+                      'h-10 w-full rounded-[6px] border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] pl-9 pr-3 text-sm text-[var(--rui-text-primary)] outline-none placeholder:text-[var(--rui-text-tertiary)] focus:border-[var(--rui-accent)] focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0',
                       searchClassName,
                     )}
                   />
@@ -430,7 +430,9 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
                       }}
                       className={cn(
                         'flex w-full items-start justify-between gap-3 rounded-[8px] px-3 py-2.5 text-left text-sm transition',
-                        selected ? 'bg-[var(--rui-accent-soft)] text-white' : 'text-white/75 hover:bg-white/[0.06] hover:text-white',
+                        selected
+                          ? 'bg-[var(--rui-accent-soft)] text-[var(--rui-accent-soft-text)]'
+                          : 'text-[var(--rui-text-secondary)] hover:bg-[var(--rui-accent-muted)] hover:text-[var(--rui-text-primary)]',
                         disabledOption && 'cursor-not-allowed opacity-50',
                         optionClassName,
                       )}

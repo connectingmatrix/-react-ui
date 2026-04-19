@@ -24,12 +24,12 @@ export interface BannerProps {
 }
 
 const toneStyles: Record<NonNullable<BannerProps['tone']>, { bg: string; border: string; text: string }> = {
-  info: { bg: 'rgba(52,212,232,0.10)', border: 'rgba(52,212,232,0.25)', text: 'white' },
-  accent: { bg: 'rgba(52,212,232,0.10)', border: 'rgba(52,212,232,0.25)', text: 'white' },
-  success: { bg: 'rgba(25,211,168,0.10)', border: 'rgba(25,211,168,0.22)', text: 'white' },
-  warning: { bg: 'rgba(240,180,79,0.10)', border: 'rgba(240,180,79,0.22)', text: 'white' },
-  danger: { bg: 'rgba(235,106,118,0.10)', border: 'rgba(235,106,118,0.22)', text: 'white' },
-  neutral: { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.10)', text: 'white' },
+  info: { bg: 'var(--rui-accent-soft)', border: 'var(--rui-accent-border)', text: 'var(--rui-text-primary)' },
+  accent: { bg: 'var(--rui-accent-soft)', border: 'var(--rui-accent-border)', text: 'var(--rui-text-primary)' },
+  success: { bg: 'var(--rui-success-soft)', border: 'var(--rui-success-border)', text: 'var(--rui-text-primary)' },
+  warning: { bg: 'var(--rui-warning-soft)', border: 'var(--rui-warning-border)', text: 'var(--rui-text-primary)' },
+  danger: { bg: 'var(--rui-danger-soft)', border: 'var(--rui-danger-border)', text: 'var(--rui-text-primary)' },
+  neutral: { bg: 'var(--rui-bg-panel-2)', border: 'var(--rui-border-soft)', text: 'var(--rui-text-primary)' },
 };
 
 export function Banner({
@@ -65,7 +65,9 @@ export function Banner({
       {accentColor ? <div aria-hidden="true" className={cn('absolute inset-y-0 left-0 w-1 bg-[var(--rui-banner-accent)]', accentClassName)} /> : null}
       <div className={cn('flex items-start gap-3', contentClassName)}>
         {icon ? (
-          <div className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-inherit">{icon}</div>
+          <div className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] text-inherit">
+            {icon}
+          </div>
         ) : null}
         <div className="min-w-0 flex-1">
           {title ? (

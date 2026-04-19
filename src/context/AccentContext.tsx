@@ -24,6 +24,9 @@ export interface AccentTokens {
   accentMuted?: string;
   accentBorder?: string;
   accentBorderSoft?: string;
+  accentContrast?: string;
+  accentSoftText?: string;
+  accentOutlineText?: string;
   success?: string;
   successSoft?: string;
   successBorder?: string;
@@ -76,6 +79,9 @@ export const defaultAccentTokens: Required<AccentTokens> = {
   accentMuted: 'rgba(25, 199, 220, 0.08)',
   accentBorder: 'rgba(25, 199, 220, 0.45)',
   accentBorderSoft: 'rgba(25, 199, 220, 0.35)',
+  accentContrast: '#ffffff',
+  accentSoftText: '#ffffff',
+  accentOutlineText: '#ffffff',
   success: '#17e4b6',
   successSoft: 'rgba(23, 228, 182, 0.18)',
   successBorder: 'rgba(23, 228, 182, 0.55)',
@@ -136,6 +142,115 @@ export const defaultAccentPresets: Record<string, AccentTokens> = {
   },
 };
 
+const tailAdminLightBase: AccentTokens = {
+  bgApp: '#f9fafb',
+  bgSurface: '#ffffff',
+  bgSurface2: '#f9fafb',
+  bgCard: '#ffffff',
+  bgCard2: '#f9fafb',
+  bgPanel: '#ffffff',
+  bgPanel2: '#f9fafb',
+  bgInput: '#ffffff',
+  borderSoft: '#e4e7ec',
+  borderStrong: '#d0d5dd',
+  textPrimary: '#101828',
+  textSecondary: '#475467',
+  textTertiary: '#667085',
+  accentContrast: '#ffffff',
+  success: '#12b76a',
+  successSoft: '#ecfdf3',
+  successBorder: '#6ce9a6',
+  warning: '#f79009',
+  warningSoft: '#fffaeb',
+  warningBorder: 'rgba(247, 144, 9, 0.36)',
+  danger: '#f04438',
+  dangerSoft: '#fef3f2',
+  dangerBorder: '#fda29b',
+  shadowPanel: '0 1px 2px rgba(16, 24, 40, 0.05)',
+  radiusPanel: '16px',
+  radiusControl: '8px',
+};
+
+Object.assign(defaultAccentPresets, {
+  light: {
+    ...tailAdminLightBase,
+    accent: '#465fff',
+    accentStrong: '#3641f5',
+    accentSoft: '#ecf3ff',
+    accentMuted: 'rgba(70, 95, 255, 0.08)',
+    accentBorder: '#9cb9ff',
+    accentBorderSoft: '#dde9ff',
+    accentSoftText: '#465fff',
+    accentOutlineText: '#465fff',
+  },
+  tailadmin: {
+    ...tailAdminLightBase,
+    accent: '#465fff',
+    accentStrong: '#3641f5',
+    accentSoft: '#ecf3ff',
+    accentMuted: 'rgba(70, 95, 255, 0.08)',
+    accentBorder: '#9cb9ff',
+    accentBorderSoft: '#dde9ff',
+    accentSoftText: '#465fff',
+    accentOutlineText: '#465fff',
+  },
+  'light-blue': {
+    ...tailAdminLightBase,
+    accent: '#0ba5ec',
+    accentStrong: '#007aff',
+    accentSoft: '#f0f9ff',
+    accentMuted: 'rgba(11, 165, 236, 0.08)',
+    accentBorder: '#569ff7',
+    accentBorderSoft: 'rgba(11, 165, 236, 0.22)',
+    accentSoftText: '#0ba5ec',
+    accentOutlineText: '#0ba5ec',
+  },
+  'light-success': {
+    ...tailAdminLightBase,
+    accent: '#12b76a',
+    accentStrong: '#039855',
+    accentSoft: '#ecfdf3',
+    accentMuted: 'rgba(18, 183, 106, 0.08)',
+    accentBorder: '#6ce9a6',
+    accentBorderSoft: 'rgba(18, 183, 106, 0.22)',
+    accentSoftText: '#05603a',
+    accentOutlineText: '#039855',
+  },
+  'light-warning': {
+    ...tailAdminLightBase,
+    accent: '#f79009',
+    accentStrong: '#dc6803',
+    accentSoft: '#fffaeb',
+    accentMuted: 'rgba(247, 144, 9, 0.08)',
+    accentBorder: 'rgba(247, 144, 9, 0.42)',
+    accentBorderSoft: 'rgba(247, 144, 9, 0.24)',
+    accentSoftText: '#dc6803',
+    accentOutlineText: '#dc6803',
+  },
+  'light-danger': {
+    ...tailAdminLightBase,
+    accent: '#f04438',
+    accentStrong: '#d92d20',
+    accentSoft: '#fef3f2',
+    accentMuted: 'rgba(240, 68, 56, 0.08)',
+    accentBorder: '#fda29b',
+    accentBorderSoft: 'rgba(240, 68, 56, 0.22)',
+    accentSoftText: '#912018',
+    accentOutlineText: '#d92d20',
+  },
+  'light-neutral': {
+    ...tailAdminLightBase,
+    accent: '#667085',
+    accentStrong: '#344054',
+    accentSoft: '#f2f4f7',
+    accentMuted: 'rgba(16, 24, 40, 0.05)',
+    accentBorder: '#d0d5dd',
+    accentBorderSoft: '#e4e7ec',
+    accentSoftText: '#344054',
+    accentOutlineText: '#344054',
+  },
+});
+
 type AccentCssProperties = CSSProperties & Record<string, string>;
 
 const AccentContext = createContext<AccentContextValue | null>(null);
@@ -174,6 +289,9 @@ export function accentTokensToCssVars(tokens: AccentTokens): AccentCssProperties
     '--rui-accent-muted': resolved.accentMuted,
     '--rui-accent-border': resolved.accentBorder,
     '--rui-accent-border-soft': resolved.accentBorderSoft,
+    '--rui-accent-contrast': resolved.accentContrast,
+    '--rui-accent-soft-text': resolved.accentSoftText,
+    '--rui-accent-outline-text': resolved.accentOutlineText,
     '--rui-success': resolved.success,
     '--rui-success-soft': resolved.successSoft,
     '--rui-success-border': resolved.successBorder,

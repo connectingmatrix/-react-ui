@@ -62,7 +62,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
       }}
       className={cn(
         'relative inline-flex h-8 w-[54px] flex-shrink-0 items-center rounded-full border outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--rui-accent)] focus-visible:ring-offset-0',
-        isChecked ? 'border-[rgba(25,199,220,0.4)] bg-[var(--rui-success)]/90' : 'border-white/10 bg-white/10',
+        isChecked ? 'border-[var(--rui-success-border)] bg-[var(--rui-success)]' : 'border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)]',
         disabled && 'opacity-60',
         !label && !description && className,
         trackClassName,
@@ -87,7 +87,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
       {(label || description) && (
         <span className="min-w-0">
           {label ? (
-            <span id={labelId} className={cn('block text-sm font-medium text-white', labelClassName)}>
+            <span id={labelId} className={cn('block text-sm font-medium text-[var(--rui-text-primary)]', labelClassName)}>
               {label}
             </span>
           ) : null}
