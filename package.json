@@ -8,7 +8,22 @@
     "**/*.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "stories",
+    ".storybook",
+    "storybook-static",
+    "tailwind.config.js",
+    "postcss.config.cjs",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "eslint.config.js",
+    "prettier.config.js",
+    ".yarnrc.yml",
+    "yarn.lock",
+    "README.md"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -22,7 +37,8 @@
     "./styles.css": "./dist/styles.css"
   },
   "scripts": {
-    "dev": "yarn build:css && storybook dev -p 6006",
+    "dev": "yarn storybook",
+    "storybook": "yarn build:css && storybook dev -p 6006",
     "build": "yarn clean && yarn build:css && yarn build:types && yarn build:js",
     "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
     "build:js": "vite build",
@@ -32,6 +48,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
+    "prepack": "yarn build && yarn build:storybook",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
