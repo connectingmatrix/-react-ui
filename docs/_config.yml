@@ -1,5 +1,7 @@
 title: '@react/ui'
 description: Reusable React UI primitives, fields, elements, and layouts for application dashboards.
+url: 'https://connectingmatrix.github.io'
+baseurl: '/-react-ui'
 theme: minima
 markdown: kramdown
 plugins: []

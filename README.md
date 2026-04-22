@@ -145,6 +145,7 @@ Docs are published from the `docs` directory through GitHub Pages on every push 
 The published package includes Storybook source and the prebuilt static Storybook.
 
 - Source stories: `stories/*.stories.tsx`
+- Getting Started recipe: `stories/getting-started.stories.tsx`
 - Exact usage snippets: `stories/story-source.ts`
 - Bot-screen recipes: `stories/bot-recipes.stories.tsx`
 - Exact market symbol table recipe: `stories/market-symbol-data-table.stories.tsx`

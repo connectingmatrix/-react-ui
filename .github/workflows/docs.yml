@@ -50,11 +50,6 @@ jobs:
       - name: Build Storybook
         run: yarn build:storybook
 
-      - name: Attach Storybook to docs
-        run: |
-          mkdir -p docs/storybook
-          cp -R storybook-static/. docs/storybook/
-
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
@@ -63,6 +58,12 @@ jobs:
         with:
           source: ./docs
           destination: ./_site
+
+      - name: Attach Storybook to Pages site
+        run: |
+          mkdir -p _site/storybook
+          cp -R storybook-static/. _site/storybook/
+          touch _site/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

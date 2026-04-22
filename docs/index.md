@@ -14,6 +14,7 @@ Reusable React UI primitives, fields, elements, and layouts for application dash
 ## Live References
 
 - [Storybook](./storybook/)
+- [Getting Started Storybook recipe](./storybook/?path=/story/react-ui-getting-started--getting-started-recipe)
 - [Exact market symbol table recipe](./storybook/?path=/story/react-ui-recipes-market-symbol-data-table--market-symbol-data-table)
 
 ## Regenerate Docs
