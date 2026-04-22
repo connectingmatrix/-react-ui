@@ -96,7 +96,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
       {label || description ? (
         <div className={cn(labelPosition === 'left' ? 'pt-2' : '', 'min-w-0')}>
           {label ? (
-            <label htmlFor={inputId} className={cn('block text-sm font-medium text-white', labelClassName)}>
+            <label htmlFor={inputId} className={cn('block text-sm font-medium text-[var(--rui-text-primary)]', labelClassName)}>
               {label}
               {required ? <span className="ml-1 text-[var(--rui-accent)]">*</span> : null}
             </label>

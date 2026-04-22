@@ -21,8 +21,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: 'border border-[var(--rui-accent)] bg-[var(--rui-accent)] text-[var(--rui-accent-contrast)] hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
-  secondary:
-    'border border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-[var(--rui-accent-soft-text)] hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
+  secondary: 'border border-[var(--rui-accent-border)] bg-[var(--rui-accent-soft)] text-[var(--rui-accent-soft-text)] hover:brightness-110 focus-visible:ring-[var(--rui-accent)]',
   outline: 'border border-[var(--rui-accent)] bg-transparent text-[var(--rui-accent-outline-text)] hover:bg-[var(--rui-accent-muted)] focus-visible:ring-[var(--rui-accent)]',
   ghost:
     'border border-[var(--rui-border-soft)] bg-transparent text-[var(--rui-text-secondary)] hover:bg-[var(--rui-accent-muted)] hover:text-[var(--rui-text-primary)] focus-visible:ring-[var(--rui-accent)]',
@@ -32,9 +31,9 @@ const variantClasses: Record<ButtonVariant, string> = {
     'border border-[var(--rui-success-border)] bg-[var(--rui-success-soft)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-success-soft)] focus-visible:ring-[var(--rui-success)]',
   warning:
     'border border-[var(--rui-warning-border)] bg-[var(--rui-warning-soft)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-warning-soft)] focus-visible:ring-[var(--rui-warning)]',
-  subtle: 'border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-accent-muted)] focus-visible:ring-[var(--rui-accent)]',
-  icon:
-    'border border-[var(--rui-border-soft)] bg-transparent text-[var(--rui-text-secondary)] hover:bg-[var(--rui-accent-muted)] hover:text-[var(--rui-text-primary)] focus-visible:ring-[var(--rui-accent)]',
+  subtle:
+    'border border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] text-[var(--rui-text-primary)] hover:bg-[var(--rui-accent-muted)] focus-visible:ring-[var(--rui-accent)]',
+  icon: 'border border-[var(--rui-border-soft)] bg-transparent text-[var(--rui-text-secondary)] hover:bg-[var(--rui-accent-muted)] hover:text-[var(--rui-text-primary)] focus-visible:ring-[var(--rui-accent)]',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -96,7 +95,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       style={accentStyle}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-[8px] font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/5 disabled:text-white/35 disabled:opacity-80',
+        'inline-flex items-center justify-center gap-2 rounded-[8px] font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:border-[var(--rui-border-soft)] disabled:bg-[var(--rui-bg-panel-2)] disabled:text-[var(--rui-text-tertiary)] disabled:opacity-70',
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && 'w-full',

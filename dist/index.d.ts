@@ -13,8 +13,8 @@ export { DynamicPanel, GridLayout, default as GridLayoutDefault } from './layout
 export type { DynamicPanelButtonRenderParams, DynamicPanelButtonRenderer, DynamicPanelControlsRenderParams, DynamicPanelProps, GridLayoutPersistenceAdapter, GridLayoutProps, GridPanelDefinition, GridPanelState, GridPanelWidth, } from './layouts/GridLayout';
 export { Icon } from './components/Icon';
 export type { IconProps, UiIconName } from './components/Icon';
-export { AccentProvider, accentTokensToCssVars, defaultAccentKey, defaultAccentPresets, defaultAccentTokens, useAccent, useAccentStyle } from './context/AccentContext';
-export type { AccentableProps, AccentContextValue, AccentKey, AccentProviderProps, AccentTokens } from './context/AccentContext';
+export { AccentProvider, accentTokensToCssVars, createAccentPresets, createAccentTokens, defaultAccentKey, defaultAccentPresets, defaultAccentTokens, resolveAccentTokens, useAccent, useAccentStyle, } from './context/AccentContext';
+export type { AccentableProps, AccentContextValue, AccentKey, AccentPresetDefinition, AccentPresetInput, AccentProviderProps, AccentTokens } from './context/AccentContext';
 export { Logger, default as LoggerDefault } from './elements/Logger';
 export type { LoggerEntry, LoggerFilterState, LoggerOption, LoggerProps } from './elements/Logger';
 export { Notification, NotificationViewport, default as NotificationViewportDefault } from './elements/NotificationViewport';

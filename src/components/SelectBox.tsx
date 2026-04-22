@@ -298,7 +298,7 @@ function SelectBoxInner<TValue, TMode extends SelectBoxMode = 'single'>(
       {label || description ? (
         <div className={cn(labelPosition === 'left' ? 'pt-2' : '', 'min-w-0')}>
           {label ? (
-            <label htmlFor={id} className={cn('block text-sm font-medium text-white', labelClassName)}>
+            <label htmlFor={id} className={cn('block text-sm font-medium text-[var(--rui-text-primary)]', labelClassName)}>
               {label}
             </label>
           ) : null}

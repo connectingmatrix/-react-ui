@@ -211,7 +211,8 @@ export function DynamicPanel({
     draggable: !isFullscreen,
     onDragStart,
     onDragEnd,
-    className: 'cursor-grab rounded border border-white/10 p-1 text-white/55 hover:bg-white/5 hover:text-white active:cursor-grabbing',
+    className:
+      'cursor-grab rounded border border-[var(--rui-border-soft)] p-1 text-[var(--rui-text-tertiary)] hover:bg-[var(--rui-accent-muted)] hover:text-[var(--rui-text-primary)] active:cursor-grabbing',
     title: 'Drag handle',
   };
   const moveHandle = allowMovement
@@ -324,7 +325,7 @@ export function DynamicPanel({
         ) : (
           <div
             className={cn(
-              'flex flex-col gap-3 border-b border-white/8 bg-black/10 px-3 py-3 sm:flex-row sm:items-start sm:justify-between sm:px-4 sm:py-4',
+              'flex flex-col gap-3 border-b border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel-2)] px-3 py-3 sm:flex-row sm:items-start sm:justify-between sm:px-4 sm:py-4',
               panel.headerClassName,
               headerClassName,
             )}
@@ -333,8 +334,8 @@ export function DynamicPanel({
               <div className="flex items-center gap-2">
                 {moveHandle}
                 <div className="min-w-0">
-                  <div className="truncate text-base font-semibold text-white">{panel.title}</div>
-                  {description ? <div className="mt-1 text-sm text-white/60">{description}</div> : null}
+                  <div className="truncate text-base font-semibold text-[var(--rui-text-primary)]">{panel.title}</div>
+                  {description ? <div className="mt-1 text-sm text-[var(--rui-text-secondary)]">{description}</div> : null}
                 </div>
               </div>
             </div>

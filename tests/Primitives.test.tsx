@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { AccentProvider, accentTokensToCssVars, defaultAccentPresets } from '../src/context/AccentContext';
+import { AccentProvider, accentTokensToCssVars, createAccentPresets, createAccentTokens, defaultAccentPresets } from '../src/context/AccentContext';
 import Badge from '../src/components/Badge';
 import Banner from '../src/components/Banner';
 import Button from '../src/components/Button';
@@ -136,6 +136,32 @@ describe('AccentContext', () => {
     expect(vars['--rui-accent']).toBe('#465fff');
     expect(vars['--rui-accent-soft']).toBe('#ecf3ff');
     expect(vars['--rui-accent-soft-text']).toBe('#465fff');
+  });
+
+  it('creates custom accents by extending a built-in preset', () => {
+    const brand = createAccentTokens('light', { accent: '#635bff', accentStrong: '#4f46e5' });
+
+    expect(brand.bgPanel).toBe('#ffffff');
+    expect(brand.textPrimary).toBe('#101828');
+    expect(brand.accent).toBe('#635bff');
+    expect(brand.accentStrong).toBe('#4f46e5');
+  });
+
+  it('creates provider accent maps from named definitions', () => {
+    const accents = createAccentPresets({
+      brand: { extends: 'light', tokens: { accent: '#635bff', accentSoft: '#eef2ff' } },
+    });
+
+    render(
+      <AccentProvider accentKey="brand" accents={accents}>
+        <Button>Brand action</Button>
+      </AccentProvider>,
+    );
+
+    const button = screen.getByRole('button', { name: 'Brand action' });
+    expect(button.style.getPropertyValue('--rui-bg-panel')).toBe('#ffffff');
+    expect(button.style.getPropertyValue('--rui-accent')).toBe('#635bff');
+    expect(button.style.getPropertyValue('--rui-accent-soft')).toBe('#eef2ff');
   });
 });
 

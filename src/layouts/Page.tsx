@@ -81,8 +81,8 @@ export function PageHeader({ title, pageName, description, subtitle, actions, ac
   return (
     <div className={cn('flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between', className)} style={accentStyle}>
       <div className="min-w-0">
-        {resolvedTitle ? <h1 className="text-[28px] font-semibold text-white">{resolvedTitle}</h1> : null}
-        {resolvedDescription ? <p className="mt-2 max-w-3xl text-sm text-white/70">{resolvedDescription}</p> : null}
+        {resolvedTitle ? <h1 className="text-[28px] font-semibold text-[var(--rui-text-primary)]">{resolvedTitle}</h1> : null}
+        {resolvedDescription ? <p className="mt-2 max-w-3xl text-sm text-[var(--rui-text-secondary)]">{resolvedDescription}</p> : null}
         {children}
       </div>
       {resolvedActions ? <div className="flex flex-wrap items-center gap-3">{resolvedActions}</div> : null}

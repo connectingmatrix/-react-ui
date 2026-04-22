@@ -275,13 +275,44 @@ type AccentCssProperties = CSSProperties & Record<string, string>;
 
 const AccentContext = createContext<AccentContextValue | null>(null);
 
-function resolveTokens(key: AccentKey, accents?: Record<string, AccentTokens>, tokens?: AccentTokens) {
+export interface AccentPresetDefinition {
+  extends?: AccentKey;
+  tokens: AccentTokens;
+}
+
+export type AccentPresetInput = AccentTokens | AccentPresetDefinition;
+
+export function resolveAccentTokens(key: AccentKey = defaultAccentKey, accents?: Record<string, AccentTokens>, tokens?: AccentTokens): Required<AccentTokens> {
   return {
     ...defaultAccentTokens,
     ...(defaultAccentPresets[key] || {}),
     ...(accents?.[key] || {}),
     ...(tokens || {}),
   };
+}
+
+export function createAccentTokens(baseOrTokens: AccentKey | AccentTokens = defaultAccentKey, overrides: AccentTokens = {}): Required<AccentTokens> {
+  if (typeof baseOrTokens === 'string') {
+    return { ...resolveAccentTokens(baseOrTokens), ...overrides };
+  }
+
+  return { ...defaultAccentTokens, ...baseOrTokens, ...overrides };
+}
+
+function isAccentPresetDefinition(input: AccentPresetInput): input is AccentPresetDefinition {
+  return typeof input === 'object' && input !== null && 'tokens' in input;
+}
+
+export function createAccentPresets(definitions: Record<string, AccentPresetInput>): Record<string, AccentTokens> {
+  return Object.fromEntries(
+    Object.entries(definitions).map(([key, input]) => {
+      if (isAccentPresetDefinition(input)) {
+        return [key, createAccentTokens(input.extends ?? defaultAccentKey, input.tokens)];
+      }
+
+      return [key, createAccentTokens(input)];
+    }),
+  );
 }
 
 export function accentTokensToCssVars(tokens: AccentTokens): AccentCssProperties {
@@ -337,7 +368,7 @@ export function useAccent(accentKey?: AccentKey, tokens?: AccentTokens) {
   const hasExplicitAccent = Boolean(context || accentKey || tokens);
   const resolvedKey = context?.accentKey ?? accentKey ?? defaultAccentKey;
   const resolvedTokens = useMemo(
-    () => resolveTokens(resolvedKey, context?.accents, context?.tokens ? { ...context.tokens, ...tokens } : tokens),
+    () => resolveAccentTokens(resolvedKey, context?.accents, context?.tokens ? { ...context.tokens, ...tokens } : tokens),
     [context?.accents, context?.tokens, resolvedKey, tokens],
   );
   const style = useMemo(() => (hasExplicitAccent ? accentTokensToCssVars(resolvedTokens) : undefined), [hasExplicitAccent, resolvedTokens]);
@@ -352,7 +383,7 @@ export function useAccentStyle(accentKey?: AccentKey, style?: CSSProperties, tok
 
 export function AccentProvider({ accentKey = defaultAccentKey, accents, tokens, children, className, style }: AccentProviderProps) {
   const value = useMemo(() => ({ accentKey, accents, tokens }), [accentKey, accents, tokens]);
-  const accentStyle = useMemo(() => ({ ...accentTokensToCssVars(resolveTokens(accentKey, accents, tokens)), ...style }), [accentKey, accents, style, tokens]);
+  const accentStyle = useMemo(() => ({ ...accentTokensToCssVars(resolveAccentTokens(accentKey, accents, tokens)), ...style }), [accentKey, accents, style, tokens]);
 
   return (
     <AccentContext.Provider value={value}>
