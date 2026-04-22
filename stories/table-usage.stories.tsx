@@ -598,6 +598,8 @@ function SymbolUniverseTable() {
             kind: 'action',
             hideable: false,
             width: 72,
+            groupId: 'base',
+            groupLabel: 'Base',
             renderCell: (row) => (
               <input
                 type="checkbox"
@@ -613,19 +615,46 @@ function SymbolUniverseTable() {
               />
             ),
           },
-          { id: 'symbol', label: 'Symbol', kind: 'text', width: 130, renderCell: (row) => <span className="font-semibold text-white">{row.symbol}</span> },
-          { id: 'change1hPct', label: '1h', kind: 'number', width: 100, renderCell: (row) => <span className={signedTone(row.change1hPct)}>{row.change1hPct.toFixed(2)}%</span> },
+          {
+            id: 'symbol',
+            label: 'Symbol',
+            kind: 'text',
+            width: 130,
+            groupId: 'base',
+            groupLabel: 'Base',
+            renderCell: (row) => <span className="font-semibold text-white">{row.symbol}</span>,
+          },
+          {
+            id: 'updatedAt',
+            label: 'Updated',
+            kind: 'datetime',
+            width: 170,
+            visibleByDefault: false,
+            groupId: 'base',
+            groupLabel: 'Base',
+            renderCell: (row) => formatDateTime(row.updatedAt),
+          },
+          {
+            id: 'change1hPct',
+            label: '1h',
+            kind: 'number',
+            width: 100,
+            groupId: 'price',
+            groupLabel: 'Price change %',
+            renderCell: (row) => <span className={signedTone(row.change1hPct)}>{row.change1hPct.toFixed(2)}%</span>,
+          },
           {
             id: 'change24hPct',
             label: '24h',
             kind: 'number',
             width: 100,
+            groupId: 'price',
+            groupLabel: 'Price change %',
             renderCell: (row) => <span className={signedTone(row.change24hPct)}>{row.change24hPct.toFixed(2)}%</span>,
           },
-          { id: 'volume', label: 'Volume', kind: 'number', width: 120, renderCell: (row) => formatMoney(row.volume) },
-          { id: 'score', label: 'Score', kind: 'number', width: 96, renderCell: (row) => Number(row.score).toFixed(1) },
-          { id: 'decision', label: 'Decision', kind: 'enum', width: 126, renderCell: (row) => statusBadge(row.decision) },
-          { id: 'updatedAt', label: 'Updated', kind: 'datetime', width: 170, visibleByDefault: false, renderCell: (row) => formatDateTime(row.updatedAt) },
+          { id: 'volume', label: 'Volume', kind: 'number', width: 120, groupId: 'volume', groupLabel: 'Volume', renderCell: (row) => formatMoney(row.volume) },
+          { id: 'score', label: 'Score', kind: 'number', width: 96, groupId: 'combined', groupLabel: 'Combined Intelligence', renderCell: (row) => Number(row.score).toFixed(1) },
+          { id: 'decision', label: 'Decision', kind: 'enum', width: 126, groupId: 'combined', groupLabel: 'Combined Intelligence', renderCell: (row) => statusBadge(row.decision) },
         ]}
         rowKey={(row) => row.id}
         virtualization={{ enabled: true, maxHeight: 380, rowHeight: 52 }}
@@ -794,7 +823,7 @@ const tableUsageCases: TableUsageCase[] = [
   {
     title: 'SymbolAnalysisTable custom grid parity',
     source: 'ui/components/charts/SymbolAnalysisTable.tsx',
-    coverage: 'Previous custom grid behavior: external search, custom filter/sort/export toolbar, manual selection, wide rows, and virtualization.',
+    coverage: 'Previous custom grid behavior: external search, custom filter/sort/export toolbar, manual selection, grouped live market headers, wide rows, and virtualization.',
     render: <SymbolUniverseTable />,
   },
 ];

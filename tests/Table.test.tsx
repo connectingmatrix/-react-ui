@@ -97,6 +97,26 @@ describe('Table', () => {
     expect(firstRowCells[1].querySelector('input[type="checkbox"]')).toBeInTheDocument();
   });
 
+  it('renders contiguous column groups with header colspans', () => {
+    const { container } = render(
+      <Table
+        rows={rows}
+        columns={[
+          { id: 'name', label: 'Name', kind: 'text', width: 160, groupId: 'base', groupLabel: 'Base' },
+          { id: 'status', label: 'Status', kind: 'enum', width: 120, groupId: 'base', groupLabel: 'Base' },
+          { id: 'score1h', label: '1h', kind: 'number', width: 100, getValue: (row) => row.score, groupId: 'price', groupLabel: 'Price change %' },
+          { id: 'score24h', label: '24h', kind: 'number', width: 100, getValue: (row) => row.score, groupId: 'price', groupLabel: 'Price change %' },
+          { id: 'volume', label: 'Volume', kind: 'number', width: 120, getValue: (row) => row.score, groupId: 'volume', groupLabel: 'Volume' },
+        ]}
+        rowKey={(row) => row.id}
+      />,
+    );
+
+    const groupHeaders = Array.from(container.querySelectorAll('thead tr:first-child th')).filter((header) => header.textContent?.trim());
+    expect(groupHeaders.map((header) => header.textContent?.trim())).toEqual(['Base', 'Price change %', 'Volume']);
+    expect(groupHeaders.map((header) => header.getAttribute('colspan'))).toEqual(['2', '2', '1']);
+  });
+
   it('toggles single row selection off when the selected radio is clicked again', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

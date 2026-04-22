@@ -66,6 +66,16 @@ const tableColumns: TableColumn<ElementRow>[] = [
   { id: 'note', label: 'Note', kind: 'text', width: 280, wrap: true, visibleByDefault: false },
 ];
 
+const groupedTableColumns: TableColumn<ElementRow>[] = [
+  { ...tableColumns[0], groupId: 'base', groupLabel: 'Base' },
+  { ...tableColumns[1], groupId: 'base', groupLabel: 'Base' },
+  { ...tableColumns[2], groupId: 'review', groupLabel: 'Review state' },
+  { ...tableColumns[3], groupId: 'review', groupLabel: 'Review state' },
+  { ...tableColumns[4], groupId: 'runtime', groupLabel: 'Runtime' },
+  { ...tableColumns[5], groupId: 'runtime', groupLabel: 'Runtime' },
+  { ...tableColumns[6], groupId: 'notes', groupLabel: 'Notes' },
+];
+
 const logEntries: LoggerEntry[] = [
   {
     id: 'entry-1',
@@ -175,6 +185,15 @@ const tableCases: StoryCase[] = [
       { name: 'visibleByDefault', value: 'false on secondary columns' },
     ],
     render: <Table rows={rows} columns={tableColumns} rowKey={(row) => row.id} tableId="elements-column-controls-table" />,
+  },
+  {
+    title: 'Table column groups',
+    description: 'Grouped header row for wide symbol-analysis style tables.',
+    props: [
+      { name: 'column.groupId', value: '"base" | "price" | "volume" | ...' },
+      { name: 'column.groupLabel', value: '"Base" | "Price change %" | ...' },
+    ],
+    render: <Table rows={rows} columns={groupedTableColumns} rowKey={(row) => row.id} tableId="elements-column-groups-table" />,
   },
   {
     title: 'Table filters',
@@ -467,6 +486,7 @@ interface TableElementArgs {
   headerFilters: boolean;
   renderHeaderFilters: boolean;
   renderSelectionActions: boolean;
+  showColumnGroups: boolean;
   virtualizationEnabled: boolean;
   virtualizationRowHeight: number;
   virtualizationOverscan: number;
@@ -530,6 +550,7 @@ export const TableElement: StoryObj<TableElementArgs> = {
     headerFilters: false,
     renderHeaderFilters: false,
     renderSelectionActions: true,
+    showColumnGroups: true,
     virtualizationEnabled: false,
     virtualizationRowHeight: 56,
     virtualizationOverscan: 4,
@@ -596,6 +617,7 @@ export const TableElement: StoryObj<TableElementArgs> = {
     headerFilters: { control: 'boolean', table: { category: 'Table filters' } },
     renderHeaderFilters: { control: 'boolean', table: { category: 'Table filters' } },
     renderSelectionActions: { control: 'boolean', table: { category: 'Table selection' } },
+    showColumnGroups: { name: 'columns[].groupId/groupLabel', control: 'boolean', table: { category: 'Table columns' } },
     virtualizationEnabled: { name: 'virtualization.enabled', control: 'boolean', table: { category: 'Table virtualization' } },
     virtualizationRowHeight: { name: 'virtualization.rowHeight', control: 'number', table: { category: 'Table virtualization' } },
     virtualizationOverscan: { name: 'virtualization.overscan', control: 'number', table: { category: 'Table virtualization' } },
@@ -653,7 +675,7 @@ export const TableElement: StoryObj<TableElementArgs> = {
         <Section title="Controlled Table example" description="These controls map to Table props.">
           <Table
             rows={rows}
-            columns={tableColumns}
+            columns={args.showColumnGroups ? groupedTableColumns : tableColumns}
             rowKey={(row) => row.id}
             tableId={args.tableId}
             scopeId={args.scopeId || undefined}

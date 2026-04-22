@@ -199,25 +199,29 @@ import '@react/ui/styles.css';
 interface Row {
   id: string;
   name: string;
+  owner: string;
   status: 'Ready' | 'Review' | 'Blocked';
   score: number;
 }
 
 const rows: Row[] = [
-  { id: 'one', name: 'Overview', status: 'Ready', score: 92 },
-  { id: 'two', name: 'Strategy', status: 'Review', score: 78 },
+  { id: 'one', name: 'Overview', owner: 'Mira Chen', status: 'Ready', score: 92 },
+  { id: 'two', name: 'Strategy', owner: 'Omar Malik', status: 'Review', score: 78 },
 ];
 
 const columns: TableColumn<Row>[] = [
-  { id: 'name', label: 'Name', kind: 'text', width: 180 },
+  { id: 'name', label: 'Name', kind: 'text', width: 180, groupId: 'base', groupLabel: 'Base' },
+  { id: 'owner', label: 'Owner', kind: 'text', width: 150, groupId: 'base', groupLabel: 'Base' },
   {
     id: 'status',
     label: 'Status',
     kind: 'enum',
     width: 130,
+    groupId: 'review',
+    groupLabel: 'Review state',
     renderCell: (row) => <Badge>{row.status}</Badge>,
   },
-  { id: 'score', label: 'Score', kind: 'number', width: 110, align: 'right' },
+  { id: 'score', label: 'Score', kind: 'number', width: 110, align: 'right', groupId: 'review', groupLabel: 'Review state' },
 ];
 
 export function Example() {

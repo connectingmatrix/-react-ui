@@ -1096,6 +1096,30 @@ export function Table<Row>({
   const selectionActions = selectedKeys.length ? renderSelectionActions?.({ selectedKeys, selectedRows, clearSelection }) : null;
 
   const hasColumnGroups = visibleColumns.some((column) => column.groupId || column.groupLabel);
+  const columnGroups = useMemo(() => {
+    if (!hasColumnGroups) return [];
+
+    return visibleColumns.reduce<Array<{ key: string; label: React.ReactNode; span: number }>>((groups, column) => {
+      const key = column.groupId
+        ? `group:${column.groupId}`
+        : typeof column.groupLabel === 'string' || typeof column.groupLabel === 'number'
+          ? `label:${column.groupLabel}`
+          : column.groupLabel
+            ? `node:${column.id}`
+            : 'ungrouped';
+      const label = column.groupLabel ?? column.groupId ?? '';
+      const previousGroup = groups[groups.length - 1];
+
+      if (previousGroup?.key === key) {
+        previousGroup.span += 1;
+        return groups;
+      }
+
+      groups.push({ key, label, span: 1 });
+      return groups;
+    }, []);
+  }, [hasColumnGroups, visibleColumns]);
+
   const finishColumnDrag = () => {
     draggingColumnIdRef.current = null;
     setDraggingColumnId(null);
@@ -1108,9 +1132,13 @@ export function Table<Row>({
     <tr className="sticky top-0 z-30 border-b border-[var(--rui-border-soft)] bg-[var(--rui-bg-panel)] text-[var(--rui-text-secondary)]">
       {hasRowDetails ? <th className="w-14 px-3 py-2" rowSpan={2} /> : null}
       {selectionMode ? <th className="w-[72px] px-3 py-2" rowSpan={2} /> : null}
-      {visibleColumns.map((column) => (
-        <th key={column.id} className="px-3 py-2 text-left text-xs font-medium uppercase tracking-[0.14em]">
-          {column.groupLabel || column.groupId || ''}
+      {columnGroups.map((group) => (
+        <th
+          key={group.key}
+          colSpan={group.span}
+          className="border-r border-[var(--rui-border-soft)] px-3 py-2 text-left text-xs font-medium uppercase tracking-[0.14em] last:border-r-0"
+        >
+          {group.label}
         </th>
       ))}
       {hasFillerColumn ? <th className="px-3 py-2" rowSpan={2} aria-hidden="true" /> : null}

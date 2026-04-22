@@ -47,7 +47,19 @@ interface RecipeStoryArgs {
   onRunAction: (...payload: unknown[]) => void;
 }
 
-const accentOptions: AccentKey[] = ['default', 'teal', 'warning', 'danger', 'neutral', 'tailadmin', 'light-blue', 'light-success', 'light-warning', 'light-danger', 'light-neutral'];
+const accentOptions: AccentKey[] = [
+  'default',
+  'teal',
+  'warning',
+  'danger',
+  'neutral',
+  'tailadmin',
+  'light-blue',
+  'light-success',
+  'light-warning',
+  'light-danger',
+  'light-neutral',
+];
 
 const meta: Meta<RecipeStoryArgs> = {
   title: 'Binance Bot UI/Recipes',
@@ -1030,32 +1042,40 @@ function CryptoTrackerRecipe(args: RecipeStoryArgs) {
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>(['sym-pixel']);
   const [, setState] = useState<TableState | null>(null);
   const columns: TableColumn<AnyRow>[] = [
-    { id: 'level', label: 'Level', kind: 'enum', width: 110 },
-    { id: 'symbol', label: 'Symbol', kind: 'text', width: 130, renderCell: (row) => <span className="font-semibold text-white">{row.symbol}</span> },
-    { id: 'priceUsd', label: 'Price USD', kind: 'number', width: 120, renderCell: (row) => moneyCell(row.priceUsd, 6) },
-    { id: 'totalVolume', label: 'Total Volume', kind: 'number', width: 150, renderCell: (row) => moneyCell(row.totalVolume) },
-    { id: 'liveTickCurrent', label: 'Live Tick Current', kind: 'number', width: 160, renderCell: (row) => pctCell(row.liveTickCurrent) },
-    { id: 'updated', label: 'Updated', kind: 'datetime', width: 172, renderCell: (row) => formatDateTime(row.updated) },
-    { id: 'change5m', label: '5m', kind: 'number', width: 90, renderCell: (row) => pctCell(row.change5m) },
-    { id: 'vol5m', label: 'Vol 5m', kind: 'number', width: 130, renderCell: (row) => moneyCell(row.vol5m) },
-    { id: 'change15m', label: '15m', kind: 'number', width: 90, renderCell: (row) => pctCell(row.change15m) },
-    { id: 'vol15m', label: 'Vol 15m', kind: 'number', width: 130, renderCell: (row) => moneyCell(row.vol15m) },
-    { id: 'change1h', label: '1h', kind: 'number', width: 90, renderCell: (row) => pctCell(row.change1h) },
-    { id: 'vol1h', label: 'Vol 1h', kind: 'number', width: 130, renderCell: (row) => moneyCell(row.vol1h) },
-    { id: 'change1d', label: '1d', kind: 'number', width: 90, renderCell: (row) => pctCell(row.change1d) },
-    { id: 'vol1d', label: 'Vol 1d', kind: 'number', width: 130, renderCell: (row) => moneyCell(row.vol1d) },
-    { id: 'obSource', label: 'OB Source', kind: 'text', width: 140 },
-    { id: 'spreadBps', label: 'OB Spread', kind: 'number', width: 120, renderCell: (row) => `${row.spreadBps.toFixed(2)} bps` },
-    { id: 'depth', label: 'OB Depth', kind: 'number', width: 110 },
-    { id: 'imbalance', label: 'OB Imb.', kind: 'number', width: 110, renderCell: (row) => row.imbalance.toFixed(2) },
-    { id: 'micro', label: 'OB Micro', kind: 'text', width: 110 },
+    { id: 'level', label: 'Level', kind: 'enum', width: 110, groupId: 'base', groupLabel: 'Base' },
+    {
+      id: 'symbol',
+      label: 'Symbol',
+      kind: 'text',
+      width: 130,
+      groupId: 'base',
+      groupLabel: 'Base',
+      renderCell: (row) => <span className="font-semibold text-white">{row.symbol}</span>,
+    },
+    { id: 'priceUsd', label: 'Price USD', kind: 'number', width: 120, groupId: 'base', groupLabel: 'Base', renderCell: (row) => moneyCell(row.priceUsd, 6) },
+    { id: 'totalVolume', label: 'Total Volume', kind: 'number', width: 150, groupId: 'base', groupLabel: 'Base', renderCell: (row) => moneyCell(row.totalVolume) },
+    { id: 'liveTickCurrent', label: 'Live Tick Current', kind: 'number', width: 160, groupId: 'base', groupLabel: 'Base', renderCell: (row) => pctCell(row.liveTickCurrent) },
+    { id: 'updated', label: 'Updated', kind: 'datetime', width: 172, groupId: 'base', groupLabel: 'Base', renderCell: (row) => formatDateTime(row.updated) },
+    { id: 'change5m', label: '5m', kind: 'number', width: 90, groupId: 'price', groupLabel: 'Price change %', renderCell: (row) => pctCell(row.change5m) },
+    { id: 'change15m', label: '15m', kind: 'number', width: 90, groupId: 'price', groupLabel: 'Price change %', renderCell: (row) => pctCell(row.change15m) },
+    { id: 'change1h', label: '1h', kind: 'number', width: 90, groupId: 'price', groupLabel: 'Price change %', renderCell: (row) => pctCell(row.change1h) },
+    { id: 'change1d', label: '1d', kind: 'number', width: 90, groupId: 'price', groupLabel: 'Price change %', renderCell: (row) => pctCell(row.change1d) },
+    { id: 'vol5m', label: 'Vol 5m', kind: 'number', width: 130, groupId: 'volume', groupLabel: 'Volume', renderCell: (row) => moneyCell(row.vol5m) },
+    { id: 'vol15m', label: 'Vol 15m', kind: 'number', width: 130, groupId: 'volume', groupLabel: 'Volume', renderCell: (row) => moneyCell(row.vol15m) },
+    { id: 'vol1h', label: 'Vol 1h', kind: 'number', width: 130, groupId: 'volume', groupLabel: 'Volume', renderCell: (row) => moneyCell(row.vol1h) },
+    { id: 'vol1d', label: 'Vol 1d', kind: 'number', width: 130, groupId: 'volume', groupLabel: 'Volume', renderCell: (row) => moneyCell(row.vol1d) },
+    { id: 'obSource', label: 'OB Source', kind: 'text', width: 140, groupId: 'live', groupLabel: 'Live order book' },
+    { id: 'spreadBps', label: 'OB Spread', kind: 'number', width: 120, groupId: 'live', groupLabel: 'Live order book', renderCell: (row) => `${row.spreadBps.toFixed(2)} bps` },
+    { id: 'depth', label: 'OB Depth', kind: 'number', width: 110, groupId: 'live', groupLabel: 'Live order book' },
+    { id: 'imbalance', label: 'OB Imb.', kind: 'number', width: 110, groupId: 'live', groupLabel: 'Live order book', renderCell: (row) => row.imbalance.toFixed(2) },
+    { id: 'micro', label: 'OB Micro', kind: 'text', width: 110, groupId: 'live', groupLabel: 'Live order book' },
   ];
   return (
     <Recipe accentKey={args.accentKey}>
       <PageContainer>
         <PageHeader
           title="Symbol analysis"
-          description="Wide live table with sticky headers and market windows."
+          description="Wide live table with grouped market windows, sticky headers, and live order-book columns."
           actions={
             <Button
               variant="ghost"

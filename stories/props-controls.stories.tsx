@@ -67,6 +67,13 @@ const controlColumns: TableColumn<ControlRow>[] = [
   { id: 'score', label: 'Score', kind: 'number', width: 110, align: 'right' },
 ];
 
+const groupedControlColumns: TableColumn<ControlRow>[] = [
+  { ...controlColumns[0], groupId: 'base', groupLabel: 'Base' },
+  { ...controlColumns[1], groupId: 'base', groupLabel: 'Base' },
+  { ...controlColumns[2], groupId: 'quality', groupLabel: 'Quality' },
+  { ...controlColumns[3], groupId: 'quality', groupLabel: 'Quality' },
+];
+
 const loggerEntries: LoggerEntry[] = [
   { id: 'log-1', level: 'INFO', category: 'system', source: 'demo', message: 'Loaded reusable props controls.', createdAt: '2026-04-19T10:00:00Z' },
   { id: 'log-2', level: 'WARN', category: 'review', source: 'demo', message: 'One sample row needs review.', payload: { id: 'two' }, createdAt: '2026-04-19T10:05:00Z' },
@@ -181,6 +188,7 @@ interface GroupedControlsArgs {
   tableExpanded: boolean;
   tableRenderHeaderFilters: boolean;
   tableRenderSelectionActions: boolean;
+  tableShowColumnGroups: boolean;
   tableVirtualization: boolean;
   tableAccentKey: string;
   tableContainerClassName: string;
@@ -384,7 +392,7 @@ function GroupedControlsCanvas(args: GroupedControlsArgs) {
           <h2 className="text-lg font-semibold text-[var(--rui-text-primary)]">Elements</h2>
           <Table
             rows={controlRows}
-            columns={controlColumns}
+            columns={args.tableShowColumnGroups ? groupedControlColumns : controlColumns}
             rowKey={(row) => row.id}
             searchable={args.tableSearchable}
             searchPlaceholder={args.tableSearchPlaceholder}
@@ -687,6 +695,7 @@ export function Example() {
     tableExpanded: true,
     tableRenderHeaderFilters: true,
     tableRenderSelectionActions: true,
+    tableShowColumnGroups: true,
     tableVirtualization: false,
     tableAccentKey: 'default',
     tableContainerClassName: '',
@@ -849,6 +858,7 @@ export function Example() {
     tableExpanded: { name: 'defaultExpandedRowIds', control: 'boolean', table: category('Table') },
     tableRenderHeaderFilters: { name: 'renderHeaderFilters', control: 'boolean', table: category('Table render props') },
     tableRenderSelectionActions: { name: 'renderSelectionActions', control: 'boolean', table: category('Table render props') },
+    tableShowColumnGroups: { name: 'columns[].groupId/groupLabel', control: 'boolean', table: category('Table columns') },
     tableVirtualization: { name: 'virtualization.enabled', control: 'boolean', table: category('Table virtualization') },
     tableAccentKey: { name: 'accentKey', control: 'select', options: accentOptions, table: category('Table') },
     tableContainerClassName: { name: 'containerClassName', control: 'text', table: category('Table classes') },
