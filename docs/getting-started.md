@@ -66,6 +66,7 @@ Prefer wrapping each app or route in `AccentProvider`. Use `accentKey` on a comp
 
 ```bash
 yarn install --immutable
+yarn docs:api
 yarn typecheck
 yarn lint
 yarn test
@@ -74,3 +75,9 @@ yarn build:storybook
 ```
 
 Use `yarn storybook` while developing examples.
+
+## More Guides
+
+- [Generated API Reference](./api/index.md)
+- [Migration From Bot Wrappers](./migration-from-bot-wrappers.md)
+- [Storybook](./storybook/)

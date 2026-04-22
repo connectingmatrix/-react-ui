@@ -10,6 +10,7 @@
   "files": [
     "dist",
     "docs",
+    "scripts",
     "src",
     "stories",
     ".storybook",
@@ -46,6 +47,7 @@
     "build:storybook": "yarn build:css && storybook build",
     "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
     "clean": "rm -rf dist storybook-static",
+    "docs:api": "node scripts/generate-api-docs.mjs && prettier --write docs/api",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",

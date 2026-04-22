@@ -131,8 +131,14 @@ export function App() {
 - [Getting Started](./docs/getting-started.md)
 - [Page, GridLayout, DynamicPanel, and Table](./docs/page-grid-table.md)
 - [Accents and Design Tokens](./docs/accents.md)
+- [Generated API Reference](./docs/api/index.md)
+- [Migration From Bot Wrappers](./docs/migration-from-bot-wrappers.md)
 - [Creating New Components](./docs/creating-components.md)
 - [Implementation and README Gap Audit](./docs/system-audit.md)
+
+## GitHub Docs
+
+Docs are published from the `docs` directory through GitHub Pages on every push to `main`. The workflow regenerates TypeScript API docs with `yarn docs:api`, builds Storybook, and publishes both the Markdown docs and static Storybook.
 
 ## Storybook
 

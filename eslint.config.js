@@ -12,8 +12,19 @@ export default [
     files: ['**/*.cjs'],
     languageOptions: {
       globals: {
+        __dirname: 'readonly',
+        console: 'readonly',
         module: 'readonly',
+        process: 'readonly',
         require: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
       },
     },
   },

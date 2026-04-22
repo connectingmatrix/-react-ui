@@ -127,6 +127,7 @@ Do not render custom prop tables inside the canvas. Use Storybook controls and d
 ## 8. Run Verification
 
 ```bash
+yarn docs:api
 yarn typecheck
 yarn lint
 yarn test
@@ -135,3 +136,7 @@ yarn build:storybook
 ```
 
 For visual work, compare the story against a real consuming app screen before shipping.
+
+## 9. Update Docs
+
+After adding or changing public props, run `yarn docs:api` and include the generated `docs/api` changes in the same commit. Add or update a written guide when the new component needs usage guidance beyond the prop table.

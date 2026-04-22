@@ -1,0 +1,10 @@
+title: '@react/ui'
+description: Reusable React UI primitives, fields, elements, and layouts for application dashboards.
+theme: minima
+markdown: kramdown
+plugins: []
+defaults:
+  - scope:
+      path: ''
+    values:
+      layout: default

@@ -1,0 +1,81 @@
+name: Publish GitHub Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/docs.yml'
+      - '.storybook/**'
+      - 'README.md'
+      - 'docs/**'
+      - 'package.json'
+      - 'scripts/**'
+      - 'src/**'
+      - 'stories/**'
+      - 'yarn.lock'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Generate API docs
+        run: yarn docs:api
+
+      - name: Build Storybook
+        run: yarn build:storybook
+
+      - name: Attach Storybook to docs
+        run: |
+          mkdir -p docs/storybook
+          cp -R storybook-static/. docs/storybook/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build Pages site
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -34,6 +34,8 @@ Package shipping was improved:
 
 - `docs` is included in the package `files` list.
 - README now links to detailed guides.
+- API reference docs are generated from TypeScript declarations with `yarn docs:api`.
+- GitHub Pages publishes Markdown docs and static Storybook on pushes to `main`.
 
 ## Documentation Fixes
 
@@ -46,13 +48,12 @@ New docs explain:
 - Table state, filters, grouping, expansion, selection, resizing, reordering, and persistence.
 - accent creation and token naming.
 - how to add new components safely.
+- how to migrate bot-local wrappers to `@react/ui` while keeping domain logic in the app.
 
 ## Remaining Recommendations
 
 These are useful follow-up improvements, but not blockers for basic use:
 
-- Add generated API reference pages from TypeScript types.
-- Add a dedicated "migration from app wrappers" guide.
 - Add recipe pages for each real consuming app screen.
 - Add more light-accent visual regression coverage in Storybook.
 - Add a checklist to pull requests that blocks hard-coded color classes unless justified.
