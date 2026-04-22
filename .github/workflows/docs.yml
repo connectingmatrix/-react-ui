@@ -61,9 +61,10 @@ jobs:
 
       - name: Attach Storybook to Pages site
         run: |
-          mkdir -p _site/storybook
-          cp -R storybook-static/. _site/storybook/
-          touch _site/.nojekyll
+          sudo mkdir -p _site/storybook
+          sudo cp -R storybook-static/. _site/storybook/
+          sudo touch _site/.nojekyll
+          sudo chown -R "$USER:$USER" _site
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
